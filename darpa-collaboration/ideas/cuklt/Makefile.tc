@@ -1,0 +1,17 @@
+
+#-------------------------------------------------
+THIS_MODULE_DIR_MKINC?=.
+all_mkinc:   # place holder for first rule
+
+#-------------------------------------------------
+REL_TOP_DIR=./
+TOP_DIR = $(THIS_MODULE_DIR_MKINC)/$(REL_TOP_DIR)
+
+#-------------------------------------------------
+REL_DEP_MODULES_MKINC = $(REL_TOP_DIR)/src
+
+#-------------------------------------------------
+TARGETS_MKINC = 
+
+#-------------------------------------------------
+include $(TOP_DIR)/Makefile.inc2

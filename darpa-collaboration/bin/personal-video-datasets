@@ -1,0 +1,16 @@
+#!/bin/bash
+
+SOURCE_D="/aux/qobi/video-datasets"
+TARGET_D="/aux/$(whoami)/tmp-video-datasets"
+
+mkdir -p $TARGET_D
+mkdir -p $TARGET_D/C-D1a/SINGLE_VERB 
+mkdir -p $TARGET_D/C-D1b/videos 
+mkdir -p $TARGET_D/C-D1/recognition
+mkdir -p $TARGET_D/C-D1a/voc4-models
+ 
+for i in `ls $SOURCE_D/C-D1a/SINGLE_VERB/*.mov`; do ln -sf $i $TARGET_D/C-D1a/SINGLE_VERB/`basename $i`; done
+for i in `ls $SOURCE_D/C-D1b/videos/*.mov`; do ln -sf $i $TARGET_D/C-D1b/videos/`basename $i`; done
+for i in `ls $SOURCE_D/C-D1/recognition/*.mov`; do ln -sf $i $TARGET_D/C-D1/recognition/`basename $i`; done
+for i in `ls $SOURCE_D/C-D1a/voc4-models/*.mat`; do ln -sf $i $TARGET_D/C-D1a/voc4-models/`basename $i`; done
+

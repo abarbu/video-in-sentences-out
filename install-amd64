@@ -1,0 +1,104 @@
+#!/bin/bash
+set -e
+set -o pipefail
+
+export INSTALLDIR=${HOME}
+export ARCHITECTURE_PATH=`./architecture-path`
+export INSTALLLIB=${INSTALLDIR}/lib
+export INSTALLLIBA=${INSTALLLIB}/${ARCHITECTURE_PATH}
+export INSTALLBIN=${INSTALLDIR}/bin
+export INSTALLBINA=${INSTALLBIN}/${ARCHITECTURE_PATH}
+export INSTALLINCLUDE=${INSTALLDIR}/include
+export INSTALLINCLUDEA=${INSTALLINCLUDE}/${ARCHITECTURE_PATH}
+
+mkdir -p ${INSTALLDIR}
+mkdir -p ${INSTALLLIB}
+mkdir -p ${INSTALLLIBA}
+mkdir -p ${INSTALLBIN}
+mkdir -p ${INSTALLBINA}
+mkdir -p ${INSTALLINCLUDE}
+mkdir -p ${INSTALLINCLUDEA}
+
+cp architecture-path ${INSTALLBIN}/.
+cp archive-date ${INSTALLBIN}/.
+cp scc ${INSTALLBINA}/.
+
+export LD_LIBRARY_PATH=${INSTALLLIBA}:${LD_LIBRARY_PATH}
+tar xvf gc-7.2alpha6.tar.gz
+pushd gc-7.2alpha6
+./configure --prefix=${INSTALLLIBA}
+make -j10
+rsync -avz include/* ${INSTALLINCLUDEA}/gc/
+rsync -avz .libs/*.so* ${INSTALLLIBA}/
+rsync -avz .libs/*.a ${INSTALLLIBA}/
+popd
+#TODO CLEANUP rm -rf gc-7.2alpha6
+
+source ~/.bashrc
+pushd scheme2c
+make forAMD64
+cd AMD64
+make -j10
+cd cdecl
+make all
+cd ../xlib
+make scxl.a
+cd ..
+cp xlib/depth.sch ${INSTALLINCLUDE}/.
+cp xlib/screen.sch ${INSTALLINCLUDE}/.
+cp xlib/visual.sch ${INSTALLINCLUDE}/.
+cp xlib/xarc.sch ${INSTALLINCLUDE}/.
+cp xlib/xchar2b.sch ${INSTALLINCLUDE}/.
+cp xlib/xcharstruct.sch ${INSTALLINCLUDE}/.
+cp xlib/xclasshint.sch ${INSTALLINCLUDE}/.
+cp xlib/xcolor.sch ${INSTALLINCLUDE}/.
+cp xlib/xcomposestatus.sch ${INSTALLINCLUDE}/.
+cp xlib/xevent.sch ${INSTALLINCLUDE}/.
+cp xlib/xfontprop.sch ${INSTALLINCLUDE}/.
+cp xlib/xfontstruct.sch ${INSTALLINCLUDE}/.
+cp xlib/xgcvalues.sch ${INSTALLINCLUDE}/.
+cp xlib/xhostaddress.sch ${INSTALLINCLUDE}/.
+cp xlib/xiconsize.sch ${INSTALLINCLUDE}/.
+cp xlib/ximage.sch ${INSTALLINCLUDE}/.
+cp xlib/xkeyboardcontrol.sch ${INSTALLINCLUDE}/.
+cp xlib/xkeyboardstate.sch ${INSTALLINCLUDE}/.
+cp xlib/xlibCONSTANTS.sch ${INSTALLINCLUDE}/.
+cp xlib/xlibTYPES.sch ${INSTALLINCLUDE}/.
+cp xlib/xmodifierkeymap.sch ${INSTALLINCLUDE}/.
+cp xlib/xpixmapformatvalues.sch ${INSTALLINCLUDE}/.
+cp xlib/xpoint.sch ${INSTALLINCLUDE}/.
+cp xlib/xrectangle.sch ${INSTALLINCLUDE}/.
+cp xlib/xrmoptiondescrec.sch ${INSTALLINCLUDE}/.
+cp xlib/xrmvalue.sch ${INSTALLINCLUDE}/.
+cp xlib/xsegment.sch ${INSTALLINCLUDE}/.
+cp xlib/xsetwindowattributes.sch ${INSTALLINCLUDE}/.
+cp xlib/xsizehints.sch ${INSTALLINCLUDE}/.
+cp xlib/xstandardcolormap.sch ${INSTALLINCLUDE}/.
+cp xlib/xtextitem.sch ${INSTALLINCLUDE}/.
+cp xlib/xtextitem16.sch ${INSTALLINCLUDE}/.
+cp xlib/xtextproperty.sch ${INSTALLINCLUDE}/.
+cp xlib/xtimecoord.sch ${INSTALLINCLUDE}/.
+cp xlib/xvisualinfo.sch ${INSTALLINCLUDE}/.
+cp xlib/xwindowattributes.sch ${INSTALLINCLUDE}/.
+cp xlib/xwindowchanges.sch ${INSTALLINCLUDE}/.
+cp xlib/xwmhints.sch ${INSTALLINCLUDE}/.
+cp xlib/xws10.sch ${INSTALLINCLUDE}/.
+cp xlib/xws2.sch ${INSTALLINCLUDE}/.
+cp xlib/xws3.sch ${INSTALLINCLUDE}/.
+cp xlib/xws4.sch ${INSTALLINCLUDE}/.
+cp xlib/xws5.sch ${INSTALLINCLUDE}/.
+cp xlib/xws6.sch ${INSTALLINCLUDE}/.
+cp xlib/xws7.sch ${INSTALLINCLUDE}/.
+cp xlib/xws8.sch ${INSTALLINCLUDE}/.
+cp xlib/xws9.sch ${INSTALLINCLUDE}/.
+cp xlib/xwsr4.sch ${INSTALLINCLUDE}/.
+cp scsc/sccomp ${INSTALLBINA}/.
+cp scrt/sci ${INSTALLBINA}/.
+cp scrt/libsc.a ${INSTALLLIBA}/.
+cp scrt/objects.h ${INSTALLLIBA}/.
+cp scrt/options.h ${INSTALLLIBA}/.
+cp scrt/predef.sc ${INSTALLLIBA}/.
+cp xlib/scxl.a ${INSTALLLIBA}/.
+ranlib -t ${INSTALLLIBA}/libsc.a
+ranlib -t ${INSTALLLIBA}/scxl.a
+popd

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+scc $* |&  \
+perl -p -e '$|=1; s/^\*\*\*\*\* WARNING/***** \e[00;31mWARNING\e[0m/g' | \
+perl -p -e '$|=1; s/^\*\*\*\*\* ERROR/***** \e[01;31mERROR\e[0m/g'
+R=${PIPESTATUS[0]}
+echo -en '\E[0m'
+exit $R

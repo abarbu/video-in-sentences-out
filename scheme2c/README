@@ -1,0 +1,197 @@
+Overview of the DEC Scheme->C Compiler.
+
+;* Copyright (c) 1989-1993 Hewlett-Packard Development Company, L.P.
+;*		All Rights Reserved
+
+;* Permission is hereby granted, free of charge, to any person obtaining a
+;* copy of this software and associated documentation files (the "Software"),
+;* to deal in the Software without restriction, including without limitation
+;* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+;* and/or sell copies of the Software, and to permit persons to whom the
+;* Software is furnished to do so, subject to the following conditions:
+;* 
+;* The above copyright notice and this permission notice shall be included in
+;* all copies or substantial portions of the Software.
+;* 
+;* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+;* DEALINGS IN THE SOFTWARE.
+
+(Copyright was changed 4/28/08.  Note that I did not change the copyright
+messages included in various examples, in spite of the fact that the copyright
+holder was changed from DEC to HP. If someone wants to fix the initial
+prompt in various examples in the documentation, feel free ...  Hans Boehm)
+
+This is the root directory for the Scheme-to-C compiler which was done at
+Digital Equipment Corporation's Western Research Laboratory.
+
+Changes from the previous release are noted in the file CHANGES found in this
+directory.
+
+The compiler distribution consists of several directories:
+
+	doc		contains documentation.
+
+	ports		contains implementation specific files.	
+
+	scrt		contains the runtime system.
+
+	scsc		contains the compiler.
+
+	test		contains compiler and runtime test programs.
+
+	cdecl		a C declaration compiler written in Scheme.
+
+	xlib		X11 Xlib stubs for Scheme->C.
+
+In order to install the compiler and interpreter on a system, the following
+steps must be done.  These instructions assume you're working on a
+workstation with a "unix-like" operating system such as a DECstation 5000
+running ULTRIX.
+
+
+1.  Verify that this directory contains the previously mentioned directories.
+
+2.  Create directories for the processor(s) desired:
+
+	For Alpha AXP OSF/1:
+
+		1 > make forAOSF
+
+	For Apple Macintosh system 7.1 with Think-C 5.0:
+
+		1 > make forMAC
+
+	For ULTRIX DECstations:
+
+		1 > make forDECMIPS
+
+	For SGI systems based on Rx000 MIPS processors:
+
+		1 > make forSGIMIPS
+
+	For ULTRIX VAX systems:
+
+		1 > make forVAX
+
+	For Microsoft Windows 3.1 with Microsoft C 7.0:
+	 
+		1 > make forWIN16
+
+3.  Build Scheme->C for a specific processor:
+
+	For Alpha AXP OSF/1:
+
+		2 > cd AOSF;make port
+
+	N.B.: During the compilation, uopt warnings of the form "this procedure
+	not optimized because it exceeds size threshold" may occur.  These
+	warnings may be ignored.
+
+
+	For Apple Macintosh system 7.1 with Think-C 5.0:
+
+		No further steps are done on the workstation.  Follow the
+		instructions in MAC/README to transfer files to a Macintosh
+		and complete the build.
+
+
+	For ULTRIX DECstations:
+
+		2 > cd DECMIPS;make port
+
+	N.B.: During the compilation, uopt warnings of the form "this procedure
+	not optimized because it exceeds size threshold" may occur.  These
+	warnings may be ignored.
+
+
+	For SGI systems:
+
+		2 > cd SGIMIPS;make port
+
+	N.B.: During the compilation, uopt warnings of the form "this procedure
+	not optimized because it exceeds size threshold" may occur.  These
+	warnings may be ignored.
+
+
+	For VAX systems:
+
+		2 > cd VAX;make port
+
+	N.B.:  During the compilation of scrt/scinit.c, one will get the
+	warnings:
+		"scinit.c", line 314: warning: illegal pointer combination
+		"scinit.c", line 316: warning: illegal pointer combination
+		"scinit.c", line 318: warning: illegal pointer combination
+	They may be ignored.
+
+	During the compilation of scrt/objects.c, one will get the following
+	warnings:
+		"objects.c", line 605: warning: illegal pointer combination
+		"objects.c", line 611: warning: illegal pointer combination
+		"objects.c", line 614: warning: illegal pointer combination
+		"objects.c", line 619: warning: illegal pointer combination
+		"objects.c", line 622: warning: illegal pointer combination
+	They may be ignored.
+
+	
+	For Microsoft Windows 3.1 with Microsoft C 7.0:
+
+		No further steps are done on the workstation.  Follow the
+		instructions in WIN16/README to transfer files to a PC and
+		complete the build.
+
+4.  Verify that the interpreter and compiler were correctly built:
+
+	4 >cd test
+	5 >../scrt/sci
+	SCHEME->C -- ...
+	> (load "test51.sc")
+	MODULE form ignored
+	TEST51
+	"test51.sc"
+	>  (test51 '())
+	Hello world!
+	#F
+	> ^D
+	6 >make test51
+	../scsc/sccomp -schf ../scsc/sccomp.heap -C test51.sc
+	test51.sc:
+	../scsc/sccomp -schf ../scsc/sccomp.heap -c -g test51.c
+	cc -o test51 -g test51.o ../scrt/libsc.a -lm
+	7 >test51
+	Hello world!
+
+5.  Install the libraries, compiler, and interpreter in some directory
+    such as ~/bin:
+
+	8 >cd ..
+	9 >make "DESTDIR = /udir/`whoami`/bin" install-private
+	10 >rehash
+
+    Given that this directory in the current search path, the compiler can
+    now be accessed by "scc" and the interpreter by "sci".  
+
+    N.B. Some users will see two or three sequences of error messages
+    ending with "*** Error code 1 (ignored)."  These errors may be ignored.
+
+6.  At this point, the source in cdecl and xlib can now be compiled if
+    desired:
+
+	11 > cd cdecl
+	12 > make all
+	13 > cd ../xlib
+	14 > make all
+
+    Documentation for cdecl and xlib is contained in files found in their
+    respective directories.
+
+7.  If desired, the embedded server sample program and library is
+    constructed as follows:
+
+	15 > cd ../server
+	16 > make embedded libscsrv.a

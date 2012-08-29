@@ -1,0 +1,38 @@
+two line-segment model
+  one line segment has 4 parameters
+    x,y coordinates of endpoints
+  the other has 3 parameters
+    percentage of distance along first line segment
+    length
+    angle
+
+we fix all but 2 over time, length, and angle
+
+constrain length and angle to be linear functions of time
+
+fix 5+2+2=9 parameter to whole video segment
+-------------------------------------------------------------------------------
+ 1. try compressing with standard codecs but with very low bit rates to see
+    how low the bit rate can be but still allow event to be recognized
+ 2. compress with standard codec then do Hamming distance or edit distance
+    and NN classifier
+ 3. compression ratio
+-------------------------------------------------------------------------------
+ 1. length must be positive
+ 2. angle must be in [0,2pi] or [0,pi] if symmetric
+ 3. percentage must be in [0,100]
+
+ 1. try constraining more tightly
+    a. torso angle
+    b. arm angle
+    c. shoulder joint percentage
+ 2. try pb, matlab canny, opencv canny, imagemagick canny, phase congruency
+-------------------------------------------------------------------------------
+foreach f ([0-9][0-9][0-9][0-9])
+echo $f
+smooth $f/frame.ppm $f/smooth.ppm 4 30 80 120
+rm -f $f/smooth.pgm
+ppmtopgm $f/smooth.ppm >$f/smooth.pgm
+CRC >/dev/null --viscanny $f/smooth.pgm
+end
+-------------------------------------------------------------------------------

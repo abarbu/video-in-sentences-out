@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source ~/darpa-collaboration/bin/env-vars.sh
+
+# This is a temporary and nasty hack, should go into the local matlab
+# configuration file
+if [ -e /usr/lib/libstdc++.so.6 ]; then
+    LD_PRELOAD=/usr/lib/libstdc++.so.6 $*
+else
+    $*
+fi

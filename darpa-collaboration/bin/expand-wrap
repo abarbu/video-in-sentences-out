@@ -1,0 +1,21 @@
+#!/bin/bash
+EXPECTED_ARGS=1
+E_BADARGS=65
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-to-expand command-to-run"
+  echo "video-to-expand: full path or just video name"
+  echo "command-to-run: command that needs frames expanded, including all arguments"
+  exit $E_BADARGS
+fi
+
+full_video=`~/darpa-collaboration/bin/full-video-path $1`
+shift
+
+if [ -f "$full_video.mov" ] ; then
+	~/darpa-collaboration/bin/expand-video $full_video.mov 
+	$*
+	find $full_video/ -name frame.ppm -exec rm {} +
+else
+	echo "$full_video.mov not found"
+fi

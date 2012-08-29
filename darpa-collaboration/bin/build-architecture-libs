@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mkdir -p ~/darpa-collaboration/lib/`architecture-path`/
+ln -sf /usr/lib/libblas.so.3gf ~/darpa-collaboration/lib/`architecture-path`/libblas.so.3
+ln -sf /usr/lib/libgfortran.so.3 ~/darpa-collaboration/lib/`architecture-path`/libgfortran.so.1
+ln -sf /usr/lib/liblapack.so.3gf ~/darpa-collaboration/lib/`architecture-path`/liblapack.so.3
+ln -sf ~/darpa-collaboration/pkg/liblpsolve55.so.0 ~/darpa-collaboration/lib/`architecture-path`/

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+EXPECTED_ARGS=3
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-name file-name output-file"
+  exit $E_BADARGS
+fi
+
+ffmpeg -i ~/video-datasets/C-D1a/SINGLE_VERB/$1/%04d/$2 -vcodec libx264 -vpre default -vb 900000 $3

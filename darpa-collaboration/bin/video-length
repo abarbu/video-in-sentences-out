@@ -1,0 +1,28 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video"
+  exit $E_BADARGS
+fi
+
+video=`~/darpa-collaboration/bin/full-video-path $1`
+
+if [ -f $1.mov ] ; then
+    video="$video.mov"
+fi
+
+if [ -f $1.mp4 ] ; then
+    video="$video.mp4"
+fi
+
+# http://superuser.com/questions/84631/how-do-i-get-the-number-of-frames-in-a-video-on-the-linux-command-line
+LENGTH=`ffmpeg -i $video -vcodec copy -f rawvideo -y /dev/null 2>&1 | tr ^M '\n' | awk -F= '/^frame=/ {print $2}' | awk '{print $1}' | tail -n 1`
+
+if [ -z $LENGTH ]; then
+    echo "Error, failed to get length of video"; else
+    echo $LENGTH
+fi

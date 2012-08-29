@@ -1,0 +1,6 @@
+export QINSTALLDIR=${HOME}
+export ARCHITECTURE_PATH=`~/bin/architecture-path`
+export QARCHITECTURE_PATH=${ARCHITECTURE_PATH}
+export PATH=${PATH}:~/bin
+export PATH=${PATH}:~/bin/${ARCHITECTURE_PATH}
+export LD_LIBRARY_PATH=${HOME}/lib/${ARCHITECTURE_PATH}

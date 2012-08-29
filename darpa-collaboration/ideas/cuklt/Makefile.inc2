@@ -1,0 +1,1123 @@
+# ;; -*- mode: makefile; -*-
+##=============================<Header Block>==============================
+##  - Author(s):
+##	- Tommy Chang <tchang@cme.nist.gov>
+##  $Revision: 1.197 $ $Author: tchang $ $Date: 2010/06/08 21:46:37 $
+##  ,----------------------------------------------------------------------+
+##  | DISCLAIMER:                                                          |
+##  | This software was produced by the National Institute of Standards    |
+##  | and Technology (NIST), an agency of the U.S. government, and by      |
+##  | statute is not subject to copyright in the United States.            |
+##  | Recipients of this software assume all responsibility associated     |
+##  | with its operation, modification, maintenance, and subsequent        |
+##  | redistribution.                                                      |
+##  `----------------------------------------------------------------------+
+##  Created by Tommy Chang, 2005-02-20 
+##  - Ref: John Graham-cumming, "Cross-Platform Builds", Dr Dobb's Journal, 
+##		#368, Page 48. Jan, 2005.
+##  - Usage Instruction:
+##	  	copy and model carefully the following syntax to your Makefile.
+##		See more detailed documtionatin at the end of this file.
+##  - Side-Effects warning:
+##              All variables are global, changing them in one Makefile
+## affects all other Makefiles and vice versa.  One common mistake is
+## to think the variables have scope local to the Makefile that defines
+## it -- that is not true.
+##	--------------- start of example --------------	
+#	THIS_MODULE_DIR_MKINC?=.
+#       all_mkinc:  #first rule place holder
+#	TARGETS_MKINC = libMyLib pickdepth $(THIS_MODULE_DIR_MKINC)_WHATEVER
+#
+#       ## DO NOT USE $(THIS_MODULE_DIR_MKINC) for REL_DEP_MODULES_MKINC
+#       REL_DEP_MODULES_MKINC = ../dir1 ../../dir2   
+#
+#	pickdepth.SRCS_MKINC = pickdepth.c
+#	pickdepth.CPPFLAGS_MKINC = -I $(THIS_MODULE_DIR_MKINC)
+#	pickdepth.LIBS_MKINC = -lGL -lGLU -lglut
+#
+#	libMyLib.SRCS_MKINC = myLib.cc
+#	libMyLib.CPPFLAGS_MKINC = -I $(THIS_MODULE_DIR_MKINC)
+#	libMyLib.LIBS_MKINC = -lglut
+#	libMyLib.INSTALL_DIR_MKINC = $(THIS_MODULE_DIR_MKINC)/lib
+#
+#	INSTALL_DIR_MKINC = $(THIS_MODULE_DIR_MKINC)/bin   
+#
+#       $(THIS_MODULE_DIR_MKINC)_make_extra: $(THIS_MODULE_DIR_MKINC)
+#		echo "optional extra stuff to do, triggered by 'make'
+#		echo "the current module dir can be reference by $<"
+#	$(THIS_MODULE_DIR_MKINC)_install_extra: $(THIS_MODULE_DIR_MKINC)
+#		echo "optional extra stuff to do, triggered by 'make install'"
+#	$(THIS_MODULE_DIR_MKINC)_uninstall_extra: $(THIS_MODULE_DIR_MKINC)
+#		echo "triggered by 'make uninstall'"
+#	$(THIS_MODULE_DIR_MKINC)_clean_extra: $(THIS_MODULE_DIR_MKINC)
+#		echo "triggered by 'make clean' or 'make mostlyclean'"
+#	$(THIS_MODULE_DIR_MKINC)_WHATEVER: $(THIS_MODULE_DIR_MKINC)
+#		echo "your own rule. current module dir is $<"
+#
+#	include <path_to_Makefile.inc2>/Makefile.inc2     ## put me last
+##	--------------- end of example ---------------
+##==========================>End of Header Block<==========================
+
+ifndef X_INITIALIZED
+  SHELL=bash
+  X_INITIALIZED = yes
+  PID:=$(shell echo $$$$)
+  ABS_TOP_DIR_DEF=$(shell (cd $(dir				\
+	$(filter %Makefile.inc2, $(MAKEFILE_LIST))); pwd))
+  ABS_TOP_DIR_DEF_MKINC=$(shell (cd $(dir 			\
+	$(filter %Makefile.inc2, $(MAKEFILE_LIST))); pwd))
+
+  # check CC and CXX backward compatible:
+  ifndef CXX_MKINC
+    ifneq ($(CXX), g++)		# by default CXX is g++
+      $(warning "**warning: found CXX='$(CXX)', plase convert to CXX_MKINC")
+      CXX_MKINC = $(CXX)
+    endif
+  endif
+  ifndef CC_MKINC
+    ifneq ($(CC), cc)		# by default CC is cc
+      $(warning "**warning: found CC='$(CC)', plase convert to CC_MKINC")
+      CC_MKINC = $(CC)
+    endif
+  endif
+
+  # use GNU compilers
+  CXX_MKINC ?= g++
+  CC_MKINC ?= gcc
+
+  # check RCS_NMLCFG and RCS_CODEGEN backward compatible:
+  ifndef RCS_NMLCFG_MKINC
+    ifdef RCS_NMLCFG
+      $(warning "**warning: found RCS_NMLCFG='$(RCS_NMLCFG)', \
+                 please convert to RCS_NMLCFG_MKINC")
+      RCS_NMLCFG_MKINC = $(RCS_NMLCFG)
+    endif
+  endif
+  ifndef RCS_CODEGEN_MKINC
+    ifdef RCS_CODEGEN
+      $(warning "**warning: found RCS_CODEGEN='$(RCS_CODEGEN)', \
+                 please convert to RCS_CODEGEN_MKINC")
+      RCS_CODEGEN_MKINC = $(RCS_CODEGEN)
+    endif
+  endif
+
+  # use RCS / NML
+  X_RCSDIR = /usr/local/rcslib
+  RCS_NMLCFG_MKINC ?= $(X_RCSDIR)/bin/nmlcfg
+  RCS_CODEGEN_MKINC ?= java -jar $(X_RCSDIR)/plat/java/lib/CodeGenCmdLine.jar
+
+  # check CXXFLAGS and LDFLAGS  backward compatible:
+  ifndef CXXFLAGS_MKINC
+    ifdef CXXFLAGS
+      $(warning "**warning: found CXXFLAGS='$(CXXFLAGS)',\
+                  please convert to CXXFLAGS_MKINC")
+      CXXFLAGS_MKINC = $(CXXFLAGS)
+    endif
+  endif
+  ifndef LDFLAGS_MKINC
+    ifdef LDFLAGS
+      $(warning "**warning: found LDFLAGS, please convert to LDFLAGS_MKINC")
+      LDFLAGS_MKINC = $(LDFLAGS)
+    endif
+  endif
+  CXXFLAGS_MKINC ?= -W -Wextra -Wall -Weffc++
+
+  # multi-platform support
+  ifndef X_ARCH
+    # get platform info
+    X_ARCH_KERNAL := $(shell uname -s)
+    X_ARCH_MACHINE := $(shell uname -m)
+    X_ARCH_OS := $(shell uname)
+    X_ARCH := $(X_ARCH_KERNAL)_$(X_ARCH_MACHINE)
+  endif
+  X_OBJDIR=/.OBJS
+  X_DEPDIR=/.DEPS
+  X_OUTARCH_SLASH=
+  ifneq ($(filter arch arch-install arch-clean	\
+    arch-mostlyclean arch-uninstall,		\
+    $(MAKECMDGOALS)), )
+    X_OUTARCH_SLASH := ./$(X_ARCH)/
+  endif
+  ifeq ($(MAKECMDGOALS),arch-clean)
+    MAKECMDGOALS := clean
+  endif
+
+  # 3.81 will always work.  
+  X_MIN_REQUIRED_MAKE_VERSION=381
+
+  # arch extention convention
+  X_EXEEXT=
+  X_OBJEXT=.o
+  X_STALIBEXT=.a
+  X_DYNLIBEXT=.so
+  X_LIBEXT := $(X_STALIBEXT) $(X_DYNLIBEXT)
+  ifneq ($(filter CYGWIN%, $(X_ARCH_OS)), )
+    X_EXEEXT=.exe
+  endif
+
+
+  ## check GNU Make version
+  MAKE_VERSION_NUM := $(shell echo $(MAKE_VERSION) | 		\
+    sed -e s'/\([0-9]*\)\.\([0-9]*\)[a-z]*.*/\1\2/')
+  MET_REQUIRED_VERSION :=  $(shell if [ $(MAKE_VERSION_NUM) -lt	\
+    $(X_MIN_REQUIRED_MAKE_VERSION) ];				\
+    then echo no; else echo yes; fi)
+  ifeq ($(MET_REQUIRED_VERSION),no)
+    $(warning Your GNU Make is version $(MAKE_VERSION) ($(MAKE_VERSION_NUM)))
+    $(error GNU Make version >= $(X_MIN_REQUIRED_MAKE_VERSION) is required)
+  endif
+
+  ## disable all implicit rules
+  .SUFFIXES:
+  MAKEFLAGS += -r
+
+  # get the consistant Makefile name for the entire project
+  MAKEFILE = $(firstword $(MAKEFILE_LIST))
+
+  # backward compatible with THIS_MODULE_DIR
+  ifdef THIS_MODULE_DIR
+    THIS_MODULE_DIR_MKINC = $(THIS_MODULE_DIR)
+  endif
+
+  # top level module
+  X_MODULE=.
+  ifndef THIS_MODULE_DIR_MKINC
+    $(error must include line THIS_MODULE_DIR_MKINC?=. in your Makefile)
+  else
+    ifneq ($(THIS_MODULE_DIR_MKINC),.)
+      $(error must include line THIS_MODULE_DIR_MKINC?=. in your Makefile)
+    endif
+  endif
+
+  VALID_TARGETS := all clean depend install uninstall mostlyclean	\
+    arch arch-clean arch-mostlyclean arch-install arch-uninstall	\
+    tags moduleonly
+
+  INVALID_TARGETS := wantExit real_clean real_uninstall dummy
+
+  .PHONY: $(VALID_TARGETS) $(INVALID_TARGETS)
+
+  all_mkinc: 
+	@$(RM) .Makefile.inc2.parsed; # in case a sucessful built
+
+  all:
+	@$(RM) .Makefile.inc2.parsed; # in case a sucessful built
+
+  moduleonly: 
+	@$(RM) .Makefile.inc2.parsed; # in case a sucessful built
+
+  depend: 
+	@$(RM) .Makefile.inc2.parsed; # in case a sucessful built
+
+  dummy:;
+
+  ALL_SPECIFIC_CLEAN_FILES =			\
+    $(ALL_TARGETS) $(ALL_INTERMEDIATE_TARGETS)	\
+    $(ALL_OBJS) $(ALL_DEPFILES)
+
+  # ALL_CLEAN_FILES does not inlude each individual .o .depend file as in 
+  # $ALL_SPECIFIC_CLEAN_FILES 
+  ALL_CLEAN_FILES = $(ALL_TARGETS) $(ALL_INTERMEDIATE_TARGETS) 
+
+  real_clean: 
+	$(RM) -r $(ALL_CLEAN_FILES) $(ALL_OBJDIRS) $(ALL_DEPDIRS)
+  clean: dummy	     # dummy needed due to a bug between 3.80 & 3.81??
+	@$(RM) .Makefile.inc2.parsed
+  clean: real_clean 
+  mostlyclean: clean
+  arch-mostlyclean: clean
+  arch-clean: clean
+	$(RM) -r ./$(X_ARCH)
+
+  install: all
+
+  arch arch-install: all
+
+  uninstall: real_uninstall
+	@$(RM) .Makefile.inc2.parsed
+  real_uninstall: 
+	$(if $(filter %,$(ALL_UNINSTALL_FILES)),$(RM) $(ALL_UNINSTALL_FILES),)
+  arch-uninstall: uninstall
+
+  tags:
+	-(etags *.c *.cc *.cpp *.cxx *.h *.hh *.hpp 2> /dev/null)
+
+  ## check to make sure only one goal is given
+  ifneq ($(words $(MAKECMDGOALS)),0)
+    ifneq ($(words $(MAKECMDGOALS)),1)
+      $(warning there are $(words $(MAKECMDGOALS)) goals:)
+      $(warning ==> $(MAKECMDGOALS))
+      $(error Sorry Makefile.inc2 only handles at most 1 goal.)
+    endif
+  endif
+
+  ## an internal goal is not allowed to call directly
+  ifneq ($(filter $(INVALID_TARGETS), $(MAKECMDGOALS)), )
+    $(error Sorry direct call to $(MAKECMDGOALS) not allowed.)
+  endif
+
+  ## a custom goal is called directly
+  ifneq ($(filter-out $(VALID_TARGETS), $(MAKECMDGOALS)), )
+    DIRS=
+    DEP_MODULES=
+    REL_DEP_MODULES=
+    REL_DEP_MODULES_MKINC=
+    TARGETS=
+    TARGETS_MKINC=
+    CPPFLAGS=
+    CPPFLAGS_MKINC=
+    LIBS=
+    LIBS_MKINC=
+    INSTALL_DIR=
+    INSTALL_DIR_MKINC=
+    REMAKE_DEP_FILES_MKINC=
+  else
+    ## one of the default goals
+    MAKEFILE_INC_PARSED :=			\
+      $(shell if [ -f .Makefile.inc2.parsed ] ;	\
+      then echo yes; else echo no; fi;)
+
+    ## 2nd time parsed, just exit 
+    ifeq ($(MAKEFILE_INC_PARSED), yes)
+      DIRS=
+      DEP_MODULES=
+      REL_DEP_MODULES=
+      REL_DEP_MODULES_MKINC=
+      TARGETS=
+      TARGETS_MKINC=
+      CPPFLAGS=
+      CPPFLAGS_MKINC=
+      LIBS=
+      LIBS_MKINC=
+      INSTALL_DIR=
+      INSTALL_DIR_MKINC=
+      REMAKE_DEP_FILES_MKINC=
+      $(shell $(RM) .Makefile.inc2.parsed)
+    endif
+  endif
+
+  #------------------------------------------------------------
+  # intermediate source transformation implicit rules here:
+  #------------------------------------------------------------
+  # list intermiediate files here
+  INTERMEDIATE_SRCS := %_n.cc  %_moc.cc %_moc.cpp ui_%.h
+.PRECIOUS: $(INTERMEDIATE_SRCS)     
+
+  # Make nml _n.cc file from corresponding .hh file. (code copied from DEMOIII)
+  %_n.cc: %.hh
+	@(echo "RCS_CODEGEN_MKINC is '$(RCS_CODEGEN_MKINC)'";		    \
+	echo "Running code generator for $?";				    \
+	echo "load $?" > autoscript.gen_$(PID);				    \
+	echo "clear" >> autoscript.gen_$(PID);				    \
+	echo "select_from_file $?" >> autoscript.gen_$(PID);		    \
+	echo "generate C++ format >$@" >> autoscript.gen_$(PID);	    \
+	echo "generate C++ update >$@" >> autoscript.gen_$(PID);	    \
+	echo "generate C++ constructor >$@" >> autoscript.gen_$(PID);	    \
+	echo "exit" >> autoscript.gen_$(PID));				    \
+	$(RCS_CODEGEN_MKINC) display_on=false script=autoscript.gen_$(PID); \
+	$(RM) autoscript.gen_$(PID)
+
+  # Make QT moc object
+  %_moc.cc: %.hh
+	$(QT_MOC) -o $*_moc.cc $<;
+  %_moc.cpp: %.h
+	$(QT_MOC) -o $*_moc.cpp $<;
+
+  # Make Qt designer
+  ui_%.h: %.ui
+	$(QT_UIC) $< -o $@ ;
+
+  #------------------------------------------------------------------
+  # target parttern rules here :
+  #------------------------------------------------------------------
+  PATTERN_TARGETS := %.pdf %.nml %.h
+  # how to compile latex file : script mostly copied from doxygen 
+  %.pdf: %.tex $(dir %)/*.tex
+	@(pdflatex -file-line-error -halt-on-error 			\
+	  -output-directory $(dir $<) $<;				\
+	if (test -f $*.idx); then					\
+	  makeindex $*.idx;						\
+	fi;								\
+	pdflatex -file-line-error -halt-on-error 			\
+	  -output-directory $(dir $<) $<;				\
+	latex_count=5 ;							\
+	while egrep -s 'Rerun (LaTeX|to get cross-references right)'	\
+	  $*.log && [ $$latex_count -gt 0 ] ; do			\
+	    echo "Rerunning latex...." ;				\
+	    pdflatex -file-line-error -halt-on-error 			\
+	      -output-directory $(dir $<) $< ;				\
+	    latex_count=`expr $$latex_count - 1` ;			\
+	done)
+
+  # MACRO : Reversing a list.
+  # $(1) is item, $(2) is resuting list
+  ############################################################
+  define ReverseList
+    $(2) := $(1) $($(2))
+  endef
+
+  # MACRO : Recombine a path.
+  # $(1) is item, $(2) count, $(3) is recombined result
+  ############################################################
+  define RecombinePath
+    ifeq ($(1), ..)
+      $(2) := $$($(2)) 1
+    else
+      ifeq ($($(2)), )
+        $(3) := $(1)/$$($(3))
+      else
+        $(2) := $$(wordlist 2, $$(words $$($(2))), $$($(2)))
+      endif
+    endif
+  endef
+
+
+  # MACRO : Recombine a path with ../.
+  # $(1) is recombined result
+  ############################################################
+  define RecombineExtPath
+    $(1) := ../$($(1))
+  endef
+
+
+  # MACRO : Optimize a path.
+  # $(1) is a path, $(2) is list of paths
+  ############################################################
+  define OptPath
+    ifeq ($(subst /,,$(patsubst /%,/,$(1))), ) # full path start wiht "/"
+      $(2) := $(1) $$($(2))
+    else
+      breakUp_forward := $(subst /, ,$(1))
+      breakUp_reverse=
+      $$(foreach b,$$(breakUp_forward),				\
+         $$(eval $$(call ReverseList,$$(b),breakUp_reverse)))
+
+      dd_count=
+      recomb:=$$(firstword $$(breakUp_reverse))
+      breakUp_reverse := $$(wordlist 2, $$(words $$(breakUp_reverse)),	\
+        $$(breakUp_reverse))
+
+      $$(foreach b,$$(breakUp_reverse), 		\
+        $$(eval $$(call RecombinePath,$$(b),dd_count,recomb)))
+      ifneq ($$(filter ./%, $$(recomb)), )
+        $(2) := $$(recomb) $$($(2)) 
+      else
+        $$(foreach d,$$(dd_count), $$(eval $$(call RecombineExtPath,recomb)))
+        $(2) := ./../$$(recomb) $$($(2)) 
+      endif
+    endif
+  endef
+
+
+  # MACRO : Embedding target name with module; 
+  #         Also find custom targets
+  # $(1) is target name, $(2) is module directory
+  ############################################################
+  define EmbededModuleName
+    # backward compatitble to .SRC
+    $(if $(subst file,,$(origin $(1).SRC)),,
+      $(if $($(1).SRC),
+        $(1).SRCS_MKINC:=$($(1).SRC)))
+#        $(1).SRC=))          TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .LIB
+    $(if $(subst file,,$(origin $(1).LIB)),,
+      $(if $($(1).LIB),
+        $(1).LIBS_MKINC:=$($(1).LIB)))
+#        $(1).LIB=))           TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .SRCS
+    $(if $(subst file,,$(origin $(1).SRCS)),,
+      $(if $($(1).SRCS),
+        $(1).SRCS_MKINC:=$($(1).SRCS)))
+#        $(1).SRCS=))          TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .LIBS
+    $(if $(subst file,,$(origin $(1).LIBS)),,
+      $(if $($(1).LIBS),
+        $(1).LIBS_MKINC:=$($(1).LIBS)))
+#        $(1).LIBS=))           TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .CPPFLAGS
+    $(if $(subst file,,$(origin $(1).CPPFLAGS)),,
+      $(if $($(1).CPPFLAGS),
+        $(1).CPPFLAGS_MKINC:=$($(1).CPPFLAGS)))
+#        $(1).CPPFLAGS=))       TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .STATIC_LIBS
+    $(if $(subst file,,$(origin $(1).STATIC_LIBS)),,
+      $(if $($(1).STATIC_LIBS),
+        $(1).STATIC_LIBS_MKINC:=$($(1).STATIC_LIBS)))
+#        $(1).STATIC_LIBS=))    TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .INSTALL_DIR
+    $(if $(subst file,,$(origin $(1).INSTALL_DIR)),,
+      $(if $($(1).INSTALL_DIR),
+        $(1).INSTALL_DIR_MKINC:=$($(1).INSTALL_DIR)))
+#        $(1).INSTALL_DIR=))    TC 2008-06-01 -- don't reset it
+
+    # backward compatitble to .REMAKE_DEP_FILES
+    $(if $(subst file,,$(origin $(1).REMAKE_DEP_FILES)),,
+      $(if $($(1).REMAKE_DEP_FILES),
+        $(1).REMAKE_DEP_FILES_MKINC:=$($(1).REMAKE_DEP_FILES)))
+#        $(1).REMAKE_DEP_FILES_MKINC=))   TC 2008-06-01 -- don't reset it
+
+
+    # make more descriptive target name includes module name
+    $(2)_$(1).SRCS := $$($(1).SRCS_MKINC)
+
+    # compilation and linking flags:
+    ifneq ($$($(1).CPPFLAGS_MKINC), )
+      $(2)_$(1).CPPFLAGS := $$($(1).CPPFLAGS_MKINC) $(CXXFLAGS_MKINC)
+    else
+      $(2)_$(1).CPPFLAGS := $(CPPFLAGS_MKINC) $(CXXFLAGS_MKINC)
+    endif
+
+    ifneq ($$($(1).LIBS_MKINC), )
+      $(2)_$(1).LIBS := $$($(1).LIBS_MKINC) $(LDFLAGS_MKINC)
+    else
+      $(2)_$(1).LIBS := $$(LIBS_MKINC) $(LDFLAGS_MKINC)
+    endif
+
+    # use global REMAKE_DEP_FILES_MKINC if not specified :
+    # (only for non-library, since library can use STATIC_LIBS_MKINC)
+    ifeq ($$($(1).REMAKE_DEP_FILES_MKINC), )
+      ifneq ($$(patsubst lib%,lib,$(1)),lib)
+        $(1).REMAKE_DEP_FILES_MKINC := $$(REMAKE_DEP_FILES_MKINC)
+      endif
+    endif
+
+    # optimize STATIC_LIBS
+    STATIC_LIBS_OPT =
+    $$(foreach depF,$$($(1).STATIC_LIBS_MKINC), 	\
+      $$(eval $$(call OptPath,$$(depF),STATIC_LIBS_OPT)))
+    $(2)_$(1).STATIC_LIBS := $$(STATIC_LIBS_OPT)
+
+    # put STATIC_LIBS into optimized REMAKE_DEP_FILES
+    REMAKE_DEP_FILES_OPT =
+    $$(foreach depF,$$($(1).REMAKE_DEP_FILES_MKINC), 	\
+      $$(eval $$(call OptPath,$$(depF),REMAKE_DEP_FILES_OPT)))
+    $(1).REMAKE_DEP_FILES_MKINC := $$(REMAKE_DEP_FILES_OPT) $$(STATIC_LIBS_OPT)
+
+    # prepare for install dir of each module
+    ifneq ($$($(1).INSTALL_DIR_MKINC), )
+      $(2)_$(1).INSTALL_DIR := $(X_OUTARCH_SLASH)$$($(1).INSTALL_DIR_MKINC)
+    else
+      ifneq ($(INSTALL_DIR_MKINC), )
+        $(2)_$(1).INSTALL_DIR := $(X_OUTARCH_SLASH)$$(INSTALL_DIR_MKINC)
+      endif
+    endif
+
+    # avoid confusion with same target name but different module
+    $(1).SRCS_MKINC=
+    $(1).CPPFLAGS_MKINC=
+    $(1).LIBS_MKINC=
+    $(1).INSTALL_DIR_MKINC=
+
+    # record custom targets (defined as one that does not have .SRCS
+    # and not a defined pattern target):
+    ifneq ($$(filter-out $(PATTERN_TARGETS), $(1)), )
+      ifeq ($$($(2)_$(1).SRCS), )
+        CUSTOM_TARGETS += $(1)
+      endif
+    endif
+  endef
+
+
+  # MACRO : Associating full-path target with corresponding module
+  # $(1) is full-path target, $(2) is the corresponding module
+  ############################################################
+  define ModuleLUT_template
+    $(1)_MODULE := $(2)
+  endef
+
+  # MACRO : Define rules for making a single target
+  # $(1) is target name, $(2) is the relative module directory
+  ############################################################
+  define TargetTemplate
+
+    $(2)_$(1)_REL_SRCS :=			\
+      $$(addprefix $(2)/,$$($(2)_$(1).SRCS))
+
+    $(2)_$(1)_REL_OBJS :=			\
+      $$(addsuffix $(X_OBJEXT),$$(addprefix	\
+      $($(2)_OUTPUT)$(X_OBJDIR)/_$(1)_,	\
+      $$(basename $$($(2)_$(1).SRCS))))
+
+#    $(2)_$(1)_STATIC_LIBS := $$($(2)_$(1).STATIC_LIBS)
+    $(2)_$(1)_STATIC_LIBS := 					\
+      $$(filter %$(X_STALIBEXT), $$($(2)_$(1).STATIC_LIBS))
+    $(2)_$(1)_STATIC_OBJS := 					\
+      $$(filter %$(X_OBJEXT), $$($(2)_$(1).STATIC_LIBS))
+
+    #-------------------------------------------
+    # all complex compilation rule chains here
+    #-------------------------------------------
+    ## how to compile from .c to X_OBJEXT
+    $($(2)_OUTPUT)$(X_OBJDIR)/_$(1)_%$(X_OBJEXT): $(2)/%.c $(2)/$(MAKEFILE)
+	$$(CC_MKINC) -fPIC -o '$$@' -c $$($(2)_$(1).CPPFLAGS) '$$<'
+
+    ## how to compile from .cc to X_OBJEXT
+    $($(2)_OUTPUT)$(X_OBJDIR)/_$(1)_%$(X_OBJEXT): $(2)/%.cc $(2)/$(MAKEFILE)
+	$$(CXX_MKINC) -fPIC -o '$$@' -c $$($(2)_$(1).CPPFLAGS) '$$<'
+
+    ## how to compile from .cpp to X_OBJEXT
+    $($(2)_OUTPUT)$(X_OBJDIR)/_$(1)_%$(X_OBJEXT): $(2)/%.cpp $(2)/$(MAKEFILE)
+	$$(CXX_MKINC) -fPIC -o '$$@' -c $$($(2)_$(1).CPPFLAGS) '$$<'
+
+    ## how to compile from .cxx to X_OBJEXT
+    $($(2)_OUTPUT)$(X_OBJDIR)/_$(1)_%$(X_OBJEXT): $(2)/%.cxx $(2)/$(MAKEFILE)
+	$$(CXX_MKINC) -fPIC -o '$$@' -c $$($(2)_$(1).CPPFLAGS) '$$<'
+
+    ## how to compile static library, as well as merging a bunch of them
+    ## things could have been made a little more efficient..
+    $($(2)_OUTPUT)/$(1)$(X_STALIBEXT): $$($(2)_$(1)_REL_OBJS)		\
+                                       $$($(1).REMAKE_DEP_FILES_MKINC)
+	@($$(RM) $$@;							     \
+	for Y in $$($(2)_$(1)_STATIC_LIBS); do				     \
+	  ($$(AR) -xv $$$$Y || touch catch_pipe_error) | awk '{print $$$$3}' \
+	    | xargs $(AR) -urcsv '$$@' | awk '{print $$$$3}'		     \
+	    | xargs $(RM) -v;						     \
+	done;								     \
+	if [ -f catch_pipe_error ]; then				     \
+	  echo "catch_pipe_error exists.";				     \
+	  $(RM) catch_pipe_error;					     \
+	  exit 1;							     \
+	fi;								     \
+	$$(AR) -urcsv '$$@' $$($(2)_$(1)_STATIC_OBJS) $$($(2)_$(1)_REL_OBJS));
+
+    ## how to compile C/C++ dynamic library
+    $($(2)_OUTPUT)/$(1)$(X_DYNLIBEXT): $$($(2)_$(1)_REL_OBJS)		\
+                                       $$($(1).REMAKE_DEP_FILES_MKINC)
+	$(CXX_MKINC) -o '$$@' -shared $$($(2)_$(1).CPPFLAGS)	\
+	  $$($(2)_$(1)_REL_OBJS) $$($(2)_$(1).LIBS)	\
+	  -Wl,--fatal-warnings 
+
+    ## how to compile C/C++ executable
+    ifneq ($$($(2)_$(1)_REL_OBJS), )
+      $($(2)_OUTPUT)/$(1)$(X_EXEEXT): $$($(2)_$(1)_REL_OBJS)	\
+                                      $$($(1).REMAKE_DEP_FILES_MKINC)
+	$$(CXX_MKINC) -o '$$@' $$($(2)_$(1)_REL_OBJS) $$($(2)_$(1).LIBS)
+    endif
+
+    $(2)_$(1)_REL_BINARY := $$(addprefix $$($(2)_OUTPUT)/,$(1))
+    $$(eval $$(call ModuleLUT_template,$$($(2)_$(1)_REL_BINARY),$(2)))
+
+
+    #---------------------------------
+    # how to compute dependencies
+    #---------------------------------
+    ifneq ($$(filter-out $(PATTERN_TARGETS), $(1)), )
+      ifneq ($$(filter-out $(CUSTOM_TARGETS), $(1)), )
+
+        #######################################################
+        # targets is regular:  (ones with .SRCS specified)
+        #######################################################
+        TARGET_TYPE:=regular
+        ## determine if library or execuable
+        $(if $(subst lib,,$(patsubst lib%,lib,$(1))),			 \
+           $(2)_$(1)_REL_BINARY := $$($(2)_$(1)_REL_BINARY)$$(X_EXEEXT), \
+           $(2)_$(1)_REL_BINARY := 					 \
+             $$(addprefix $$($(2)_$(1)_REL_BINARY),$$(X_LIBEXT)))
+        $$(foreach libTarget,$$($(2)_$(1)_REL_BINARY),$$(eval		\
+	  $$(call ModuleLUT_template,$$(libTarget),$(2))))
+
+        ## compile C/C++ dependency
+       ifeq ($(MAKECMDGOALS), depend)
+         DEP_LIST := dummy 						     \
+                     $$(filter $(INTERMEDIATE_SRCS), $$($(2)_$(1)_REL_SRCS))
+       else
+         DEP_LIST := $$($(2)_$(1)_REL_BINARY) 
+       endif
+
+       $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: $$(DEP_LIST)
+	 @(echo "    [post-dependency for module='$(2)' target='$(1)']"; \
+	 if ($$(COMPILE.c) -MM $$($(2)_$(1).CPPFLAGS)			 \
+	   $$($(2)_$(1)_REL_SRCS) > $$@.tmp_$$(PID)); then		 \
+	   sed -e s"/\(^[^ ]\)/$($(2)_OUTPUT_SED_FORMAT)\/_$(1)_\1/g"	 \
+	     $$@.tmp_$$(PID) > $$@;					 \
+	     $(RM) $$@.tmp_$$(PID);					 \
+	 else								 \
+	   echo "exit 1"						 \
+	   exit 1;							 \
+	 fi);
+
+
+        ALL_INTERMEDIATE_TARGETS += 				\
+          $$(filter $(INTERMEDIATE_SRCS), $$($(2)_$(1)_REL_SRCS))
+        ALL_TARGETS += $$($(2)_$(1)_REL_BINARY) 
+        ALL_OBJS += $$($(2)_$(1)_REL_OBJS) 
+
+        # track sub-module dependency - remake current module if not update
+        $($(2)_PARENT)_SUBTARGETS += $$($(2)_$(1)_REL_BINARY)
+        $(2)_TARGETS += $$($(2)_$(1)_REL_BINARY)
+
+        ifneq ($$($(2)_$(1).INSTALL_DIR), )
+          $(2)_INSTALL_CMDS +=						\
+            mkdir -p $$($(2)_$(1).INSTALL_DIR);				\
+            cp -f $$($(2)_$(1)_REL_BINARY) $$($(2)_$(1).INSTALL_DIR)/;
+          $(2)_UNINSTALL_FILES +=					   \
+             $$($(2)_$(1).INSTALL_DIR)/$$(notdir $$($(2)_$(1)_REL_BINARY))
+          $(2)_UNINSTALL_DIRS += $$($(2)_$(1).INSTALL_DIR)
+        endif
+      else
+
+        ############################################
+        ## target is custom: (Those have no .SRCS)
+        ############################################
+        TARGET_TYPE:=custom
+        ifeq ($(MAKECMDGOALS), depend)
+          $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: dummy
+	    @(echo "    [fake post-dep for module='$(2)' target='$(1)']"; \
+            mkdir -p $$(dir $$@);					  \
+	    touch $$@);	# fake dependency 
+        else
+          ifneq ($(1), dummy_mkinc)
+            $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: $(1)
+	      @(echo "    [fake post-dep dep can avoid by touching '$(1)']"; \
+              mkdir -p $$(dir $$@);					   \
+	      touch $$@);
+          endif
+        endif
+
+      endif
+    else
+
+      ###################################################################
+      ## target is pattern: (one-step implicit pattern rule, i.e. %.nml)
+      ###################################################################
+      ## for direct targets that has no dependency computation
+      TARGET_TYPE:=pattern
+      ifeq ($(MAKECMDGOALS), depend) 
+        $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: dummy
+	  @(echo "    [fake post-dep for module='$(2)' target='$(1)']"; \
+	  touch $$@);
+      else
+        $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: \
+        $$($(2)_$(1)_REL_BINARY) 
+	  @(echo "    [done pattern target: module='$(2)' target='$(1)']"; \
+	  touch $$@);
+      endif
+
+      ALL_TARGETS += $$($(2)_$(1)_REL_BINARY) 
+      # track sub-module dependency - remake current module if not update
+      $($(2)_PARENT)_SUBTARGETS += $$($(2)_$(1)_REL_BINARY)
+    endif
+
+    #######################################################
+    ## for any type of target:
+    #######################################################
+    ## do uninstall after collect all cmds:
+    ifeq ($(FIRST_TARGET), $(1))
+      ALL_UNINSTALL_FILES := $$(ALL_UNINSTALL_FILES) $$($(2)_UNINSTALL_FILES)
+      $(2)_real_install:
+	$$($(2)_INSTALL_CMDS)
+    endif
+
+    ## do extra rules only after last target:
+    ifeq ($(LAST_TARGET), $(1))
+      ifneq ($(MAKECMDGOALS), depend) # do make_extra after-ward
+        .PHONY: $(2)_make_extra
+        $(2)_make_extra: dummy
+          $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1):: $(2)_make_extra
+      endif
+      ifneq ($(filter install arch-install, $(MAKECMDGOALS)), )
+        .PHONY: $(2)_install_extra
+        $(2)_install_extra: dummy
+          $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1)::$(2)_real_install
+          $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1)::$(2)_install_extra
+      endif
+      ifneq ($(filter uninstall arch-uninstall, $(MAKECMDGOALS)), )
+        .PHONY: $(2)_uninstall_extra
+        $(2)_uninstall_extra: dummy
+        uninstall: $(2)_uninstall_extra
+      endif
+    endif
+
+    ## keep track of all dependency files 
+    ALL_DEPFILES += $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1)
+    $($(2)_OUTPUT)$(X_DEPDIR)_DEPFILES += \
+      $($(2)_OUTPUT)$(X_DEPDIR)/.depend_$($(2)_ID)_$(1)
+  endef
+
+
+
+
+  # MACRO : include a module Makefile
+  # $(1) is relative module dir
+  ############################################################
+  define IncludeModule
+    ifeq ($$(filter $(1)$(X_DEPDIR), $$(ALL_DEPDIRS)), )
+      $(1)_PARENT := $(X_MODULE)
+      TARGETS=
+      TARGETS_MKINC=
+      DIRS=
+      DEP_MODULES=
+      REL_DEP_MODULES=
+      REL_DEP_MODULES_MKINC=
+      INSTALL_DIR=
+      INSTALL_DIR_MKINC=
+      CPPFLAGS=
+      CPPFLAGS_MKINC=
+      LIBS=
+      LIBS_MKINC=
+      REMAKE_DEP_FILES_MKINC=
+      X_MODULE := $(1)
+      THIS_MODULE_DIR := $(1)
+      THIS_MODULE_DIR_MKINC := $(1)
+      include $(addsuffix /$(MAKEFILE),$(1))
+      X_MODULE := $$($(1)_PARENT)
+      THIS_MODULE_DIR := $$($(1)_PARENT)
+      THIS_MODULE_DIR_MKINC := $$($(1)_PARENT)
+
+      # update parent's dep files with all that of children:
+      $$(THIS_MODULE_DIR_MKINC)$(X_DEPDIR)_DEPFILES += \
+        $$($(1)$(X_DEPDIR)_DEPFILES)
+    else
+      # reorder optimization:
+      $(X_MODULE)_SUBTARGETS := \
+        $$($(1)_TARGETS) $$($(1)_SUBTARGETS) $$($(X_MODULE)_SUBTARGETS)
+
+      ALL_DEPFILES :=							\
+        $$(filter-out $$($(1)$(X_DEPDIR)_DEPFILES),$$(ALL_DEPFILES))	\
+        $$($(1)$(X_DEPDIR)_DEPFILES)
+    endif
+  endef
+
+  ## mark parsed lastly:
+  ifeq ($(MAKEFILE_INC_PARSED), no)
+    mark_parsed:
+	@(touch .Makefile.inc2.parsed)
+    ifneq ($(MAKECMDGOALS), clean) # clean aborts first parse
+      -include mark_parsed	# can not have error
+    endif
+  endif
+
+  # MACRO : add module dependency
+  # $(1) = full-path target
+  ############################################################
+  define AddModuleDependency
+    ifneq ($$($$($(1)_MODULE)_SUBTARGETS), )
+      $(1): $$(filter-out %$(X_DYNLIBEXT), $$($$($(1)_MODULE)_SUBTARGETS))
+    endif
+  endef
+endif  ## ifndef X_INITIALIZED
+
+
+#######################################################################
+#                                                                     #
+#######################################################################
+
+# backward compatitble with DIRS, also in case mixing DIRS ad DEP_MODULES
+ifeq ($(MAKECMDGOALS), arch-uninstall)
+  MAKECMDGOALS := uninstall
+endif
+ifneq ($(filter mostlyclean arch-mostlyclean, $(MAKECMDGOALS)), )
+  MAKECMDGOALS := clean
+  DIRS=
+  DEP_MODULES=
+  REL_DEP_MODULES=
+  REL_DEP_MODULES_MKINC=
+else
+  # backward compatitble with DIRS
+  ifdef DIRS
+    REL_DEP_MODULES_MKINC := $(REL_DEP_MODULES_MKINC) $(DIRS)
+  endif
+  # backward compatitble with DEP_MODULES
+  ifdef DEP_MODULES
+    REL_DEP_MODULES_MKINC := $(REL_DEP_MODULES_MKINC) $(DEP_MODULES)
+  endif
+  # backward compatitble with REL_DEP_MODULES
+  ifdef REL_DEP_MODULES
+    REL_DEP_MODULES_MKINC := $(REL_DEP_MODULES_MKINC) $(REL_DEP_MODULES)
+  endif
+
+  # just make the current module and none of dependent modules 
+  ifeq ($(filter moduleonly, $(MAKECMDGOALS)), moduleonly)
+    MAKECMDGOALS := 
+    DIRS=
+    DEP_MODULES=
+    REL_DEP_MODULES=
+    REL_DEP_MODULES_MKINC=
+  endif
+endif
+
+# backward compatible with none _MKINC:
+ifdef TARGETS
+  TARGETS_MKINC := $(TARGETS)
+endif
+ifdef INSTALL_DIR
+  INSTALL_DIR_MKINC := $(INSTALL_DIR)
+endif
+ifdef CPPFLAGS
+  CPPFLAGS_MKINC := $(CPPFLAGS)
+endif
+ifdef LIBS
+  LIBS_MKINC := $(LIBS)
+endif
+
+
+
+#----------------------------
+# current module definitions
+#----------------------------
+# output is relative to where make is called
+$(X_MODULE)_OUTPUT := $(X_OUTARCH_SLASH)$(X_MODULE)
+ifneq ($(TARGETS_MKINC), )
+  ALL_OBJDIRS:=$(ALL_OBJDIRS) $($(X_MODULE)_OUTPUT)$(X_OBJDIR)
+else
+  # to allow for make_extra even when there is no TARGETS_MKINC
+  TARGETS_MKINC = dummy_mkinc
+endif
+ALL_DEPDIRS:=$(ALL_DEPDIRS) $($(X_MODULE)_OUTPUT)$(X_DEPDIR)
+
+# create some uniq id as function of where make is called
+$(X_MODULE)_ID := $(subst /,,$($(X_MODULE)_OUTPUT))
+$(X_MODULE)_ID := $(subst .,_,$($(X_MODULE)_ID))
+
+# sed need to use \/ to indicate / and append the X_OBJDiR to the end
+$(X_MODULE)_OUTPUT_SED_FORMAT := $(subst /,\/,$($(X_MODULE)_OUTPUT)$(X_OBJDIR))
+
+#------------------------------------------------------------------
+# target parttern that needs other dependency here:
+# must update PATTERN_TARGETS := 
+#------------------------------------------------------------------
+# how to complie nml from cfg
+$($(X_MODULE)_OUTPUT)/%.nml: $(X_MODULE)/%.cfg $(X_MODULE)/*.cfg
+	@(cd $(dir $<) ;	$(RCS_NMLCFG_MKINC) '$(notdir $<)'	\
+	-o '$(notdir $@)' )
+
+#------------------------------------------------------------
+# define rules for making all targets in the current module
+#------------------------------------------------------------
+## embed current module name into each target name and find custom targets
+CUSTOM_TARGETS=
+$(foreach target,$(TARGETS_MKINC),$(eval		\
+    $(call EmbededModuleName,$(target),$(X_MODULE))))
+
+REVERSE_TARGETS=
+$(foreach target,$(TARGETS_MKINC),$(eval 		\
+    $(call ReverseList,$(target),REVERSE_TARGETS)))
+
+FIRST_TARGET := $(firstword $(TARGETS_MKINC))
+LAST_TARGET := $(firstword $(REVERSE_TARGETS))
+
+$(foreach target,$(REVERSE_TARGETS),$(eval		\
+    $(call TargetTemplate,$(target),$(X_MODULE))))
+
+
+#---------------------------------
+# descent into the sub modules
+#---------------------------------
+X_DEP_MODULES_DIRS_LIST := $(addprefix $(X_MODULE)/,$(REL_DEP_MODULES_MKINC))
+X_DEP_MODULES_DIRS_LIST := $(subst //,/,$(X_DEP_MODULES_DIRS_LIST))
+X_DEP_MODULES_DIRS_LIST_OPT=
+$(foreach depF,$(X_DEP_MODULES_DIRS_LIST), 	\
+  $(eval $(call OptPath,$(depF),X_DEP_MODULES_DIRS_LIST_OPT)))
+
+.PHONY: $(X_MODULE)_clean_extra
+$(X_MODULE)_clean_extra: dummy
+All_clean_extras := $(X_MODULE)_clean_extra $(All_clean_extras)
+
+## actual decent here:
+$(foreach mod,$(X_DEP_MODULES_DIRS_LIST_OPT),	\
+  $(eval $(call IncludeModule,$(mod))))
+
+
+#----------------------------------------------------------------
+# after collecting all dependencies, make all targets at once
+#----------------------------------------------------------------
+doInclude=no
+$(if $(filter ., $(X_MODULE)),				\
+  $(if $(filter no, $(MAKEFILE_INC_PARSED)),		\
+    $(if $(filter clean uninstall, $(MAKECMDGOALS)),,	\
+      $(if $(ALL_DEPFILES),				\
+        $(if $(filter depend, $(MAKECMDGOALS)),,	\
+          $(foreach target,$(ALL_TARGETS), $(eval	\
+            $(call AddModuleDependency,$(target)))))	\
+        $(eval doInclude=yes)				\
+      )							\
+    )							\
+  )							\
+)
+
+
+ifeq ($(doInclude), yes)
+  $(shell mkdir -p $(dir $(ALL_DEPFILES)) $(ALL_OBJDIRS))
+
+  # create missing dep files -- from Will
+  dummy:=$(shell				\
+    for i in $(ALL_DEPFILES) ; do		\
+      if ! test -e $$i ; then			\
+        touch -t 197001010000 $$i ;		\
+      fi;					\
+    done) 			
+  include $(ALL_DEPFILES)	# make 3.81 does not catch error if -include
+else
+  ifeq ($(X_MODULE), .)		# back to top-level module
+    clean: $(All_clean_extras)
+  endif
+endif
+
+
+############## Some Historical Accumulated Documentations: ##################
+# - One simple form of compilation/linking model is for every .cc .cpp and .c
+#   file there is a corresponding .o file;  These source files are stored in 
+#   the local variable called SRC;  Executable object names are stored in 
+#   TARGETS; if TARGETS starts with the string 'lib' (i.e., TARGETS=libAvi) 
+#   then static and dynamic libraries are generated.
+#   Compilation is done with compiler specified in CXX_MKINC (and
+#   CC_MKINC); Include  directories and compilation flags are specified 
+#   together in CPPFLAGES; Linking is done with libraries specified in LIB; 
+#
+# - It's tedious to keep documentation updated in both header (interface) 
+#   and source (implementation) files. 
+#   One simple documentation model is to keep all documentations in
+#   source files and use a documentation generator to produce a formal
+#   API document (based on source files).  This has the advantage of 
+#   not having to maintain documentations in two places while at the same time
+#   keeping the header files clean.  The disadvantage is that the user must 
+#   use third-party reader such as a web browser to view the html API 
+#   documentation. To generate documentation, do "make doc".  You may need 
+#   to do 'doxygen -g' and edit the resulting Doxyfile file for the first time.
+#
+#   HOWEVER, sometimes we want to ship software with header files and
+#   precompiled library only.  In this case, it would be necessary to
+#   move all the documentations to the header files...
+#
+# - "make" to make all targets defined; source dependencies are
+#   automatically checked.  Dependencies are generated only after a
+#   successful built. The user defined "make_extra:" rule will also be called.
+#
+# - "make moduleonly" makes only the current module and none of its
+#   dependent modules.
+#
+# - "make depend" to explicitly generate source dependencies.  This is
+#   not usually required, except sometimes in the case when checking out
+#   from the CVS and some files were removed from CVS.  In this case,
+#   you need to make depend in order to keep track of the removed source
+#   files.
+#
+# - "make tags" to make emacs tag file 
+#
+# - "make clean" to clean all object codes and the executable as well
+#   all dependent modules; User defined rule "clean_extra:" is applied
+#   as well.
+#
+# - "make mostlyclean" do the same as "make clean" except it does not
+#    clean the dependent moduels.
+#
+# - "make install" to first do a compilation and then copy the result
+#   files specified in "TARGETS_MKINC=" to either .INSTALL_DIR_MKINC or
+#   INSTALL_DIR_MKINC directory, then followed by applying the user
+#   defined rule "install_extra:".
+#
+# - "make uninstall" removes the binary files installed by 'make install'. 
+#    Followed by user defined rule "uninstall_extra:".
+#
+# - "make arch", "make arch-clean", "make arch-mostlyclean", "make
+#   arch-install", "make arch-uninstall" are pretty much the same as
+#   without the arch versions, execpt that everything was performed on an
+#   subdirctory i.e. Linux_i686, or depeding on the X_ARCH variable
+#
+# THIS_MODULE_DIR_MKINC  (also THIS_MODULE_DIR for compatible)
+#       One must have in the Makefile: THIS_MODULE_DIR_MKINC=?.
+# TARGETS_MKINC
+#	If you would like to make libraries (both static and dynamic),
+#	start your target with "lib".(e.g.TARGETS_MKINC = libMyLibrary)
+#       Also supported is latex genreated pdf file.  
+#       (e.g. TARGETS_MKINC = testme.pdf)
+# .SRCS_MKINC (also .SRC, .SRCS for backward compatiblity with Makefile.inc)
+#	If you have a NML header file, you need to put it in the  
+#       .SRCS_MKINC= with the suffix "_n.cc".  For example, suppose you 
+#       have nmlHeader.hh, you would put .SRCS_MKINC = nmlHeader_n.cc   ;
+#       NML configuration ".nml" is also supported; in this case, it is
+#       generated from corresponding .cfg file. For example,
+#       TARGETS_MKINC = interface.nml
+#       Also supported is QT moc.cc.  (e.g., .SRCS_MKINC = view_moc.cc)
+# .CPPFLAGS_MKINC (also .CPPFLAGS for backward compatiblity)
+#	Put any compilation flag and include directory (i.e. -I incdir) here.
+#	For library, usually you want to add -fPIC for making a position
+#	independent code library.  Also, -Wall is good for you.
+# CPPFLAGS_MKINC  (also CPPFLAGS for backward compatible)
+#       Put any compilation flags here, it will be used for those targets 
+#	that do not have corresponding .CPPFLAGS_MKINC
+# .LIBS_MKINC (also .LIB, .LIBS for backward compatiblity with Makefile.inc)
+#	Put any linking libraries here.  In the case of compiling a dynamic
+#	library, you might want to add "-nostdlib" so _init and _fini will
+#	work properly.
+# LIBS_MKINC (also LIBS for backward compatible)
+#	Put any linking flags here, it will used for those targets that do 
+#	not have corresponding .LIBS
+# .STATIC_LIBS_MKINC
+#	put any .a (or .o) files (order matters) that are to be combined 
+#       when creating the  static lbrary, only meaningful for library targets;
+#      (i.e. TARGET=libexample)
+# .REMAKE_DEP_FILES_MKINC  (also .REMAKE_DEP_FILES for compatible)
+#       put any files such that a remake will be done if any file is newer.
+#       similar to .SRCS excpt the files are not compiled nor linked; just 
+#       want to make sure these files are always older.
+# REMAKE_DEP_FILES_MKINC 
+#	Put any dependent file list, it will used for those
+#	non-library targets that do not have corresponding the
+#	.REMAKE_DEP_FILES_MKINC.  For library targets, use
+#	.STATIC_LIBS_MKINC instead.
+# .INSTALL_DIR_MKINC  (alos .INSTALL_DIR for compatiblity)
+#	if defined, the resulting binary/library will be installed in this
+#	directory after issuing 'make install'.  If not defined, it uses
+#	the global INSTALL_DIR. (see INSTALL_DIR_MKINC)
+# REL_DEP_MODULES_MKINC (also DIRS, DEP_MODULES, REL_DEP_MODULES for
+#       backward compatiblity)
+#	Here, put the directories containing the Makefile you want to run 
+#	first.  For example, you may have a directory containing a library 
+#	to be linked and you want be sure that library/directory is 
+#	up-to-dated. Do not set DIRS = ./ or you will get an infinite loop!
+#	If the targets in these dependent modules got updated, the current 
+#	module will automatically re-link.
+# ABS_TOP_DIR_DEF_MKINC (also ABS_TOP_DIR_DEF for backward compatiblity)
+#	This varialbe, when expaned, will be the absolute path to the 
+#	top level dir where Makefile.inc2 is located.
+# INSTALL_DIR_MKINC  (also INSTALL_DIR for backward compatible)
+#	Here, install directory is where the executable ended up when issuing
+#	"make install" command. Gets ignored for targets that have their own
+#	.INSTALL_DIR_MKINC variable defined.  (see .INSTALL_DIR_MKINC)
+# RCS_CODEGEN_MKINC  (also RCS_CODEGEN for backward compatiblity)
+#	If you are using RCS codeGen, you may need to change it to match
+#	your system platform.
+# RCS_NMLCFG_MKINC   (also RCS_NMLCFG for backward compatiblity)
+#	If you are using RCS nmlcfg, you may need to change it to match
+#	your system platform. Configuration file ends with extension .cfg
+#	and generates corresponding .nml file.
+# CXX_MKINC  (also CXX for backward compatibility)
+# CC_MKINC   (also CC for backward compatibility)
+#   	If you don't use the GNU compiler, you may need to change them.
+# LDFLAGS_MKINC  (also LDFLAGS for backward compatibility)
+#       Additional linking flags to use.
+# CXXFLAGS_MKINC   (also CXXFLAGS for backward compatibility); 
+#       Additional C/C++ flags to use.
+############## More Historical Accumulated Documentations: ##################
+# - remember that:
+#       $@ expands to the target of the rule
+#       $< expands to the first dependency
+#       $^ expands to the entire dependency list
+#       %  matches target and dependency list
+#       $* matches the stem word in SUFFIX definition, or in % rule
+#       $? matches the right hand side of the % rule 
+#       $() expands the local variable
+#       ${} expands the environment variable
+#       = assigns literal to variable
+#       := expands before assignment, but only with variable previously defined
+#       -command ignores the return value
+#       @command skips echoing the command when executing
+#       ${MAKECMDGOALS} is the automatic variable indicating target goal
+#       $(filter-out pattern...,text)
+#         Returns all whitespace-separated words in text that do not
+#         match any of the pattern words, removing the words that do match one
+#         or more. This is the exact opposite of the filter function.#
+#	Note1: Makefile rules are interpreted, not compiled.  
+#	Note2: more info can be found at 
+#	       http://www.gnu.org/software/make/manual/html_mono/make.html
+#
+############## End of Documentation ########################################
+
+

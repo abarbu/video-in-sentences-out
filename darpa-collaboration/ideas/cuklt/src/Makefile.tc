@@ -1,0 +1,74 @@
+#-------------------------------------------------
+THIS_MODULE_DIR_MKINC?=.
+all_mkinc:   # place holder for first rule
+
+#-------------------------------------------------
+REL_TOP_DIR=../
+TOP_DIR = $(THIS_MODULE_DIR_MKINC)/$(REL_TOP_DIR)
+
+#-------------------------------------------------
+REL_DEP_MODULES_MKINC = 
+
+#-------------------------------------------------
+TARGETS_MKINC = libcudaklt cukltLibTester_v2 \
+	per-frame-klt_v2 per-video-klt_v2 render-klt-result_v2
+
+#---------------------------------
+ARCH_LIB_PATH := ${HOME}/darpa-collaboration/lib/`architecture-path`
+ARCH_INC_PATH := ${HOME}/darpa-collaboration/include/`architecture-path`
+ARCH_BIN_PATH := ${HOME}/darpa-collaboration/bin/`architecture-path`
+OPENCV := -I $(ARCH_INC_PATH) -L $(ARCH_LIB_PATH)			\
+	-I. $(shell env PKG_CONFIG_PATH=$(ARCH_LIB_PATH)/pkgconfig	\
+	pkg-config --define-variable=prefix=$(ARCH_LIB_PATH)		\
+	--cflags --libs opencv)
+OPENCV_I := -I$(ARCH_INC_PATH) -I$(ARCH_INC_PATH)/opencv
+
+# TODO -L /opt/cuda/lib64 -L /usr/local/cuda/lib64 is a hack
+#---------------------------------
+libcudaklt.SRCS_MKINC = cuklt.cpp
+libcudaklt.CPPFLAGS_MKINC = -I$(THIS_MODULE_DIR_MKINC) $(OPENCV_I)
+libcudaklt.STATIC_LIBS_MKINC = \
+	$(THIS_MODULE_DIR_MKINC)/../lib/libklt_cuda_no_ipp_lib.a 
+libcudaklt.LIBS_MKINC = $(libcudaklt.STATIC_LIBS_MKINC) $(OPENCV) \
+	-L /opt/cuda/lib64 -L /usr/local/cuda/lib64 -lcudart
+libcudaklt.REMAKE_DEP_FILES_MKINC = $(libcudaklt.STATIC_LIBS_MKINC)
+
+# TODO -L /opt/cuda/lib64 -L /usr/local/cuda/lib64 is a hack
+#---------------------------------
+cukltLibTester_v2.SRCS_MKINC = cukltLibTester.cxx 
+cukltLibTester_v2.CPPFLAGS_MKINC = -I$(THIS_MODULE_DIR_MKINC) $(OPENCV_I)
+cukltLibTester_v2.LIBS_MKINC = -L $(THIS_MODULE_DIR_MKINC) -lcudaklt	\
+	$(OPENCV) -L /opt/cuda/lib64 -L /usr/local/cuda/lib64 -lcudart 
+cukltLibTester_v2.REMAKE_DEP_FILES_MKINC = \
+	$(THIS_MODULE_DIR_MKINC)/libcudaklt.so
+
+#---------------------------------
+per-video-klt_v2.SRCS_MKINC = per-video-klt.cxx ff-light.c
+per-video-klt_v2.CPPFLAGS_MKINC = -I$(THIS_MODULE_DIR_MKINC) $(OPENCV_I) \
+	-I`pkg-config --cflags imlib2`
+per-video-klt_v2.LIBS_MKINC = -L $(THIS_MODULE_DIR_MKINC) -lcudaklt	\
+	`pkg-config --libs imlib2`					\
+	$(OPENCV) -L /opt/cuda/lib64 -L /usr/local/cuda/lib64 -lcudart 
+per-video-klt_v2.REMAKE_DEP_FILES_MKINC =	\
+	$(THIS_MODULE_DIR_MKINC)/libcudaklt.so
+
+#---------------------------------
+per-frame-klt_v2.SRCS_MKINC = per-frame-klt.cxx
+per-frame-klt_v2.CPPFLAGS_MKINC = $(per-video-klt_v2.CPPFLAGS_MKINC)
+per-frame-klt_v2.LIBS_MKINC = $(per-video-klt_v2.LIBS_MKINC)
+per-frame-klt_v2.REMAKE_DEP_FILES_MKINC = \
+	$(per-video-klt_v2.REMAKE_DEP_FILES_MKINC)
+
+#---------------------------------
+render-klt-result_v2.SRCS_MKINC = render-klt-result.cxx ff-light.c
+render-klt-result_v2.CPPFLAGS_MKINC = -I$(THIS_MODULE_DIR_MKINC) $(OPENCV_I) \
+	`pkg-config --cflags libzip imlib2` 
+render-klt-result_v2.LIBS_MKINC = $(OPENCV) `pkg-config --libs libzip imlib2`
+
+#-------------------------------------------------
+$(THIS_MODULE_DIR_MKINC)_make_extra: $(THIS_MODULE_DIR_MKINC)
+	@(cd $<; cp -a libcudaklt.* ../lib/;	\
+	cp -a per-video-klt_v2 cukltLibTester_v2 ../bin/)
+
+#-------------------------------------------------
+include $(TOP_DIR)/Makefile.inc2

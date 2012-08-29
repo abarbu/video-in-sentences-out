@@ -1,0 +1,20 @@
+
+
+// -- Building -- //
+Build the example with ./build.sh
+
+
+// -- Running -- //
+To run you must manually specify the location of the CUDA libraries as follows:
+  LD_LIBRARY_PATH=/usr/local/cuda/lib64 ./cupedro --help
+  
+
+// -- Converting Models and creating PCA coefficients files -- //
+Models must be converted to irobot's binary format. 
+See help in 'convert-model.sh'
+
+
+// -- Running in Scheme -- //
+See the example in the file cupedro-bindings.sc
+
+

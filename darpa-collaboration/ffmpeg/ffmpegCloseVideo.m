@@ -1,0 +1,3 @@
+function ffmpegCloseVideo()
+
+ffmpeg('close');

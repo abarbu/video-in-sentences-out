@@ -1,0 +1,27 @@
+#!/bin/bash
+#todo: possibly work for C-D1a
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video"
+  exit $E_BADARGS
+fi
+
+CORPUS=`cat ~/darpa-collaboration/documentation/darpa-corpora.text | grep $1 | head -1 | awk '{print $1}'`
+
+if [ "$CORPUS" == "" ] ; then
+	echo "Error: Corpus not detected for $1" 1>&2
+else
+	if [ "$CORPUS" == "C-D1/recognition" ] ; then
+		echo -n "person " # Assume there's a person in C-D1 videos
+		cat ~/darpa-collaboration/documentation/C-D1-annotations.csv | grep $1 | awk -F, '{print $4" "$7" "$10}'
+	elif [ "$CORPUS" == "C-D1b/videos" ] ; then
+		cat ~/darpa-collaboration/documentation/C-D1b-objects.text | grep $1 | awk -F, '{print $2" "$4" "$6" "$8" "$10}'
+	elif [ "$CORPUS" == "C-D1a/SINGLE_VERB" ] ; then
+		echo "C-D1a unhandled"
+	else
+		echo "Unhandled corpus"
+	fi
+fi

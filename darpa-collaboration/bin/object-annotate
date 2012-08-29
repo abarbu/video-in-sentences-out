@@ -1,0 +1,46 @@
+#!/bin/bash
+#Usage
+#./object-annotate input-list.text output-list.text 0
+
+counter=0
+prevobjects=""
+
+for i in `cat $1` ; do 
+    counter=$((counter+1))
+    if [ $counter -lt $3 ] ; then 
+       continue;
+    fi
+    shortname=`basename $i`
+    fullname=`eval echo $i`
+    echo Video $counter
+    mplayer $fullname
+    echo $shortname
+    echo "=========================================="
+    echo "bag cardboard-box hammer person spade
+bicycle cellphone keys pouch SUV big-ball 
+chair log rake tape bottle football 
+motorcycle shovel tripod bucket gun pen 
+small-ball wooden-box cap"
+    echo "=========================================="
+    echo "Input objects and number for video $counter"
+    objects=""
+    while(true) ; do
+        echo Object name:
+	read temp
+	if [ "$temp" == "" ]; then
+	   break
+	fi
+	objects="$objects $temp"
+	echo "Number of object(s):"
+	read temp
+	if [ "$temp" == "" ]; then
+	    temp="1"
+	fi
+	objects="$objects $temp"
+    done
+    if [ "$objects" == "" ]; then
+	objects=$prevobjects
+    fi
+    prevobjects=$objects
+    echo ${shortname%.mov} $objects >> $2
+done

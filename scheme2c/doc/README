@@ -1,0 +1,19 @@
+This directory contains documentation for Scheme->C.
+
+embedded.tex	LaTeX document describing embedding Scheme->C inside an
+		application.
+
+index.tex	a LaTeX reference document for the language
+		which is in the form of an annoted index to
+		the Revised**4 Scheme standard.
+
+intro.tex	a LaTeX document introducing Scheme->C.
+
+r4rs/		the R4RS scheme standard in LaTeX.
+
+scc.l		UNIX man page for the Scheme->C compiler.
+
+sci.l		UNIX man page for the Scheme->C interpreter.
+
+smithnotes.tex	notes to accompany "An Introduction to Scheme"
+		by Jerry D. Smith.

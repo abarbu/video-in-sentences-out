@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e -o pipefail
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-list [a|b]"
+  echo "video-list: line-separated list of videos from C-D1"
+  echo "[a,b]: optional specifier to read from C-D1a or C-D1b instead of C-D1"
+  exit $E_BADARGS
+fi
+
+
+for i in `cat $1` ; do
+	if [ "$2" == "a" ]; then
+		mplayer ~/video-datasets/C-D1a/SINGLE_VERB/$i.mov
+	elif [ "$2" == "b" ]; then
+		mplayer ~/video-datasets/C-D1b/videos/$i.mov
+	else
+		if [ -f ~/video-datasets/C-D1/recognition/$i.mov -o -L ~/video-datasets/C-D1/recognition/$i.mov ] ; then
+			mplayer ~/video-datasets/C-D1/recognition/$i.mov
+		elif [ -f ~/video-datasets/C-D1/extra/$i.mov -o -L ~/video-datasets/C-D1/extra/$i.mov ]; then
+			echo "Video from EXTRA"
+			mplayer ~/video-datasets/C-D1/extra/$i.mov
+		fi
+	fi
+done

@@ -1,0 +1,24 @@
+
+These scripts reads annotation files from SRI, SBU, UCB & USC, and 
+generate track files compatibile with our systems.
+
+Use as follows:
+
+    ./reprocess.sh | ./write-boxes.sh
+
+The php script (trans-team-data.php) is used to massage some of the 
+input data. The other two scripts have help facilities as follows:
+
+    ./reprocess.sh --help
+    ./write-boxes.sh --help
+
+###############################################
+# Generating inter-rater reliability measures #
+###############################################
+
+See the documentation in the file:
+
+    ./calc-interrater-reliability.sh --help
+
+Enjoy!
+

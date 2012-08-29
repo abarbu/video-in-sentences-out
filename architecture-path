@@ -1,0 +1,2 @@
+#!/bin/sh
+echo `uname -m`-`lsb_release -i|cut -d: -f2|cut -f2`

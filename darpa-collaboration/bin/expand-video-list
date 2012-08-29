@@ -1,0 +1,26 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-list"
+  echo "video-list: plain text file containing the names of the videos"
+  echo "The corpus of each video will be auto-determined"
+  exit $E_BADARGS
+fi
+
+for i in `cat $1` ; do
+	video=`~/darpa-collaboration/bin/full-video-path $i`.mov
+	
+	# Fail if .mov file cannot be found
+	if [ ! -f $video ] ; then
+		echo "Error: Cannot find $video" 1>&2
+		exit
+	fi
+	
+	~/darpa-collaboration/bin/expand-video $video 
+	chmod -R ug+w ${video%.mov} 
+
+done

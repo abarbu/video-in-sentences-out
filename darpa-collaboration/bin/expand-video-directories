@@ -1,0 +1,18 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video"
+  exit $E_BADARGS
+fi
+
+NAME=${1%.*}
+mkdir -m 777 $NAME
+LENGTH=`~/darpa-collaboration/bin/video-length $1`
+
+for i in `seq 1 $LENGTH`; do
+    mkdir -m 777 $NAME/`printf '%04d' $i` &> /dev/null
+done

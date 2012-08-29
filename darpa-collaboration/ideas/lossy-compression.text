@@ -1,0 +1,73 @@
+731 frames 320x240x3
+raw 273637376 bits
+15 fps
+48.73333333333333 sec
+raw 5614994.035567716 bps
+camera codec 142736448 bits
+camera compression ratio 1.91708130497965
+
+color H.264  576000 bits
+             11819.42544459644 bps
+compression ratio over raw 475.0648888888889
+comprehensible
+
+grey 160x120 324240 bits
+             6653.351573187414 bps
+compression ratio over raw 843.9346656797434
+comprehensible
+
+smooth, canny, 160x120, H.264 152320 bits
+                              1041.860465116279 bps
+compression ratio over raw 5389.391596638656
+not comprehensible
+
+smooth, canny, 320x240, pgm tgz, 6732144 bits
+comprehensible
+
+a-cob-00-scsg3.avi 232512 bits
+                   4745.142857142857 bps
+barely comprehensible
+
+a-cob-00-scsg6.avi 379520 bits
+                   7745.306122448979 bps
+comprehensible
+
+a-cob-00-scsg6.avi.gz 308952 bits
+                      6305.142857142857 bps
+
+best comprehensible
+ 324240 bits 6653.351573187414 bps
+ 379520 bits 7745.306122448979 bps
+
+upshot we can encode at 6-7Kbps but not at 4.5Kbps
+       the first 3 orders of magnitude of semantics preserving lossy data
+         compression are easy but the last 2 are hard
+
+HD 1080p: 1920*1080*30*24 1,492,992,000 bps approx 1.5Gbps
+
+a-foob-chino-0 677 frames
+
+mencoder off of original .avi without extracting pnms
+as low as possible above 1Kbps
+
+ 1. H.264 320x240 color 15fps    13055.71639586411  bps
+ 2. H.264 320x240 grey 15fps     12043.60413589365  bps
+ 3. H.264 160x120 color 15fps     7642.776957163958 bps
+ 4. H.264 160x120 grey 15fps      7367.68094534712  bps
+ 5. H.264 160x120 color 5fps      3690.3988183161   bps
+ 6. H.264 160x120 grey 5fps       3509.6011816839   bps
+ 7. H.264 160x120 grey 5fps gzip  1885.435745937962 bps
+
+73656 a-foob-chino-0-x264-cf15.avi
+67946 a-foob-chino-0-x264-gf15.avi
+43118 a-foob-chino-0-x264-scf15.avi
+20820 a-foob-chino-0-x264-scf5.avi
+41566 a-foob-chino-0-x264-sgf15.avi
+19800 a-foob-chino-0-x264-sgf5.avi
+
+idea2 a foob chino 0 15 15 50
+160x120 15 fps not H.264
+1230142 a-foob-chino-0-subsample.avi
+
+160x120 5fps H.264 as low as possible above 1Kbps
+61006 a-foob-chino-0-subsample-x264-f5.avi

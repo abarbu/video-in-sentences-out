@@ -1,0 +1,35 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+# Currently can do width x height or format, but doesn't do both
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video [[format]|[width height]]"
+  exit $E_BADARGS
+fi
+
+# If path missing
+#if [ `basename $1` == $1 ] ; then
+	
+#fi
+
+NAME=${1%.*}
+mkdir -m 777 $NAME
+LENGTH=`~/darpa-collaboration/bin/video-length $1`
+
+for i in `seq 1 $LENGTH`; do
+    mkdir -m 777 $NAME/`printf '%04d' $i` &> /dev/null
+done
+
+if [ -z $3 ]; then
+	if [ -z $2]; then
+    	ffmpeg -i $1 $NAME/%4d/frame.ppm; 	
+	else
+    	ffmpeg -i $1 $NAME/%4d/frame.$2; 	
+	fi
+else
+    ffmpeg -i $1 -s $2x$3 $NAME/%4d/frame.ppm
+fi

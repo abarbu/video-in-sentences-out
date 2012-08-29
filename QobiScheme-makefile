@@ -1,0 +1,2386 @@
+# Makefile for QobiScheme
+# -----------------------
+
+# Site configuration
+# ------------------
+INSTALLDIR = $(QINSTALLDIR)
+ARCHITECTURE_PATH = $(QARCHITECTURE_PATH)
+INSTALLLIB = $(INSTALLDIR)/lib
+INSTALLLIBA = $(INSTALLLIB)/$(ARCHITECTURE_PATH)
+INSTALLBIN = $(INSTALLDIR)/bin
+INSTALLBINA = $(INSTALLBIN)/$(ARCHITECTURE_PATH)
+INSTALLINCLUDE = $(INSTALLDIR)/include
+INSTALLINCLUDEA = $(INSTALLINCLUDE)/$(ARCHITECTURE_PATH)
+
+RELEASE_VERSION = 1.46
+RELEASE_FILE = QobiScheme-$(RELEASE_VERSION)
+
+all: error$(ERROR_OK) body qsci sch
+
+# To add a new architecture, add architecture-specific lines.
+# The line prefix should be '#`architecture-path ', see examples below.
+port:
+	-rm -rf $(ARCHITECTURE_PATH)
+	mkdir $(ARCHITECTURE_PATH)
+	cd $(ARCHITECTURE_PATH); csh -cf "ln -s ../*.{sc,sch,load,c,h} ."
+	$(MAKE) port-makefile
+
+port-makefile:
+	echo "# This file was generated automatically.  Do not edit." >\
+		$(ARCHITECTURE_PATH)/makefile
+	echo "# ----------------------------------------------------" >>\
+		$(ARCHITECTURE_PATH)/makefile
+	echo ARCHITECTURE_PATH = $(ARCHITECTURE_PATH) >>\
+		$(ARCHITECTURE_PATH)/makefile
+	echo ERROR_OK = _no_error >> $(ARCHITECTURE_PATH)/makefile
+	grep "^#$(ARCHITECTURE_PATH)" makefile | \
+		sed "s/#$(ARCHITECTURE_PATH) //" >>\
+			$(ARCHITECTURE_PATH)/makefile
+	echo include ../makefile >> $(ARCHITECTURE_PATH)/makefile
+
+error:
+	@echo "Do 'make port' to create an architecture-specific directory."
+	@exit 1
+
+error_no_error:
+
+# Architecture-specific variables
+# -------------------------------
+#sun4-SunOS-4.1.3 CC = gcc
+#sun4-SunOS-4.1.3 CFLAGS = -O2
+#sun4-SunOS-4.1.3 SCCFLAGS = -O2
+#sun4-SunOS-4.1.3 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4-SunOS-4.1.3              -I/usr/include -I/usr/openwin/include
+#sun4-SunOS-4.1.3 ENCODECFLAGS = -I/usr/include -O2
+#sun4-SunOS-4.1.3 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4-SunOS-4.1.3 USLEEP =
+#sun4-SunOS-4.1.3 AR = ar rc
+#sun4-SunOS-4.1.3 RANLIB = ranlib
+#sun4-SunOS-4.1.3 SCCLDFLAGS =
+#sun4-SunOS-4.1.3 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4-SunOS-4.1.3       -L/usr/openwin/lib -lX11
+#sun4-SunOS-4.1.3 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4-SunOS-4.1.3         -L/usr/openwin/lib -lX11
+
+#sun4m-SunOS-5.4 CC = gcc
+#sun4m-SunOS-5.4 CFLAGS = -O2
+#sun4m-SunOS-5.4 SCCFLAGS = -O2
+#sun4m-SunOS-5.4 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4m-SunOS-5.4              -I/usr/include -I/usr/openwin/include
+#sun4m-SunOS-5.4 ENCODECFLAGS = -I/usr/include -O2
+#sun4m-SunOS-5.4 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4m-SunOS-5.4 USLEEP =
+#sun4m-SunOS-5.4 AR = ar rc
+#sun4m-SunOS-5.4 RANLIB = cat >/dev/null
+#sun4m-SunOS-5.4 SCCLDFLAGS =
+#sun4m-SunOS-5.4 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4m-SunOS-5.4       -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4m-SunOS-5.4       -L/usr/ucblib -R/usr/ucblib -lucb
+#sun4m-SunOS-5.4 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4m-SunOS-5.4         -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4m-SunOS-5.4         -L/usr/ucblib -R/usr/ucblib -lucb
+
+#sun4m-SunOS-5.5 CC = gcc
+#sun4m-SunOS-5.5 CFLAGS = -O2
+#sun4m-SunOS-5.5 SCCFLAGS = -O2
+#sun4m-SunOS-5.5 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4m-SunOS-5.5              -I/usr/include -I/usr/openwin/include
+#sun4m-SunOS-5.5 ENCODECFLAGS = -I/usr/include -O2
+#sun4m-SunOS-5.5 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4m-SunOS-5.5 USLEEP =
+#sun4m-SunOS-5.5 AR = ar rc
+#sun4m-SunOS-5.5 RANLIB = cat >/dev/null
+#sun4m-SunOS-5.5 SCCLDFLAGS =
+#sun4m-SunOS-5.5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4m-SunOS-5.5       -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4m-SunOS-5.5       -L/usr/ucblib -R/usr/ucblib -lucb
+#sun4m-SunOS-5.5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4m-SunOS-5.5         -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4m-SunOS-5.5         -L/usr/ucblib -R/usr/ucblib -lucb
+
+#sun4u-SunOS-5.6 CC = gcc
+#sun4u-SunOS-5.6 CFLAGS = -O2
+#sun4u-SunOS-5.6 SCCFLAGS = -O2
+#sun4u-SunOS-5.6 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4u-SunOS-5.6              -I/usr/include -I/usr/openwin/include
+#sun4u-SunOS-5.6 ENCODECFLAGS = -I/usr/include -O2
+#sun4u-SunOS-5.6 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4u-SunOS-5.6 USLEEP =
+#sun4u-SunOS-5.6 AR = ar rc
+#sun4u-SunOS-5.6 RANLIB = cat >/dev/null
+#sun4u-SunOS-5.6 SCCLDFLAGS =
+#sun4u-SunOS-5.6 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.6       -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.6       -L/usr/ucblib -R/usr/ucblib -lucb
+#sun4u-SunOS-5.6 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.6         -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.6         -L/usr/ucblib -R/usr/ucblib -lucb
+
+#sun4u-SunOS-5.8 CC = gcc
+#sun4u-SunOS-5.8 CFLAGS = -O2
+#sun4u-SunOS-5.8 SCCFLAGS = -O2
+#sun4u-SunOS-5.8 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4u-SunOS-5.8              -I/usr/include -I/usr/openwin/include
+#sun4u-SunOS-5.8 ENCODECFLAGS = -I/usr/include -O2
+#sun4u-SunOS-5.8 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4u-SunOS-5.8 USLEEP =
+#sun4u-SunOS-5.8 AR = ar rc
+#sun4u-SunOS-5.8 RANLIB = cat >/dev/null
+#sun4u-SunOS-5.8 SCCLDFLAGS =
+#sun4u-SunOS-5.8 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.8       -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.8       -L/usr/ucblib -R/usr/ucblib -lucb
+#sun4u-SunOS-5.8 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.8         -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.8         -L/usr/ucblib -R/usr/ucblib -lucb
+
+#sun4u-SunOS-5.10 CC = gcc
+#sun4u-SunOS-5.10 CFLAGS = -O2
+#sun4u-SunOS-5.10 SCCFLAGS = -O2
+#sun4u-SunOS-5.10 PLAYCFLAGS = -O2 -DNDEBUG -DNONANSI_INCLUDES\
+#sun4u-SunOS-5.10              -I/usr/include -I/usr/openwin/include
+#sun4u-SunOS-5.10 ENCODECFLAGS = -I/usr/include -O2
+#sun4u-SunOS-5.10 JPEGCFLAGS = -O2 -DINLINE_YES
+#sun4u-SunOS-5.10 USLEEP =
+#sun4u-SunOS-5.10 AR = ar rc
+#sun4u-SunOS-5.10 RANLIB = cat >/dev/null
+#sun4u-SunOS-5.10 SCCLDFLAGS =
+#sun4u-SunOS-5.10 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.10       -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.10       -L/usr/ucblib -R/usr/ucblib -lucb
+#sun4u-SunOS-5.10 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#sun4u-SunOS-5.10         -L/usr/openwin/lib -R/usr/openwin/lib -lX11\
+#sun4u-SunOS-5.10         -L/usr/ucblib -R/usr/ucblib -lucb
+
+#i586-Linux-2.0.0 CC = gcc
+#i586-Linux-2.0.0 CFLAGS = -O2
+#i586-Linux-2.0.0 SCCFLAGS = -O2
+#i586-Linux-2.0.0 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i586-Linux-2.0.0              -finline-functions -m486 -DNDEBUG\
+#i586-Linux-2.0.0              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i586-Linux-2.0.0              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i586-Linux-2.0.0 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i586-Linux-2.0.0                -ffast-math -finline-functions -O2\
+#i586-Linux-2.0.0                -DLONG_32 -DSYSV -DLINUX
+#i586-Linux-2.0.0 JPEGCFLAGS = -O2 -DINLINE_YES
+#i586-Linux-2.0.0 USLEEP =
+#i586-Linux-2.0.0 AR = ar rc
+#i586-Linux-2.0.0 RANLIB = ranlib
+#i586-Linux-2.0.0 SCCLDFLAGS =
+#i586-Linux-2.0.0 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.0       -L/usr/X11/lib -lX11
+#i586-Linux-2.0.0 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.0         -L/usr/X11/lib -lX11
+
+#i586-Linux-2.0.34 CC = egcs
+#i586-Linux-2.0.34 CFLAGS = -O2
+#i586-Linux-2.0.34 SCCFLAGS = -O2
+#i586-Linux-2.0.34 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i586-Linux-2.0.34              -finline-functions -m486 -DNDEBUG\
+#i586-Linux-2.0.34              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i586-Linux-2.0.34              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i586-Linux-2.0.34 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i586-Linux-2.0.34                -ffast-math -finline-functions -O2\
+#i586-Linux-2.0.34                -DLONG_32 -DSYSV -DLINUX
+#i586-Linux-2.0.34 JPEGCFLAGS = -O2 -DINLINE_YES
+#i586-Linux-2.0.34 USLEEP =
+#i586-Linux-2.0.34 AR = ar rc
+#i586-Linux-2.0.34 RANLIB = ranlib
+#i586-Linux-2.0.34 SCCLDFLAGS =
+#i586-Linux-2.0.34 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.34       -L/usr/X11/lib -lX11
+#i586-Linux-2.0.34 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.34         -L/usr/X11/lib -lX11
+
+#i586-Linux-2.0.35 CC = egcs
+#i586-Linux-2.0.35 CFLAGS = -O2
+#i586-Linux-2.0.35 SCCFLAGS = -O2
+#i586-Linux-2.0.35 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i586-Linux-2.0.35              -finline-functions -m486 -DNDEBUG\
+#i586-Linux-2.0.35              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i586-Linux-2.0.35              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i586-Linux-2.0.35 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i586-Linux-2.0.35                -ffast-math -finline-functions -O2\
+#i586-Linux-2.0.35                -DLONG_32 -DSYSV -DLINUX
+#i586-Linux-2.0.35 JPEGCFLAGS = -O2 -DINLINE_YES
+#i586-Linux-2.0.35 USLEEP =
+#i586-Linux-2.0.35 AR = ar rc
+#i586-Linux-2.0.35 RANLIB = ranlib
+#i586-Linux-2.0.35 SCCLDFLAGS =
+#i586-Linux-2.0.35 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.35       -L/usr/X11/lib -lX11
+#i586-Linux-2.0.35 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i586-Linux-2.0.35         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.18 CC = gcc
+#i686-Linux-2.0.18 CFLAGS = -O2
+#i686-Linux-2.0.18 SCCFLAGS = -O2
+#i686-Linux-2.0.18 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.18              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.18              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.18              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.18 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.18                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.18                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.18 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.18 USLEEP =
+#i686-Linux-2.0.18 AR = ar rc
+#i686-Linux-2.0.18 RANLIB = ranlib
+#i686-Linux-2.0.18 SCCLDFLAGS =
+#i686-Linux-2.0.18 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.18       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.18 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.18         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.27 CC = gcc
+#i686-Linux-2.0.27 CFLAGS = -O2
+#i686-Linux-2.0.27 SCCFLAGS = -O2
+#i686-Linux-2.0.27 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.27              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.27              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.27              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.27 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.27                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.27                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.27 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.27 USLEEP =
+#i686-Linux-2.0.27 AR = ar rc
+#i686-Linux-2.0.27 RANLIB = ranlib
+#i686-Linux-2.0.27 SCCLDFLAGS =
+#i686-Linux-2.0.27 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.27       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.27 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.27         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.30 CC = gcc
+#i686-Linux-2.0.30 CFLAGS = -O2
+#i686-Linux-2.0.30 SCCFLAGS = -O2
+#i686-Linux-2.0.30 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.30              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.30              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.30              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.30 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.30                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.30                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.30 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.30 USLEEP =
+#i686-Linux-2.0.30 AR = ar rc
+#i686-Linux-2.0.30 RANLIB = ranlib
+#i686-Linux-2.0.30 SCCLDFLAGS =
+#i686-Linux-2.0.30 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.30       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.30 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.30         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.32 CC = gcc
+#i686-Linux-2.0.32 CFLAGS = -O2
+#i686-Linux-2.0.32 SCCFLAGS = -O2
+#i686-Linux-2.0.32 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.32              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.32              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.32              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.32 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.32                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.32                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.32 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.32 USLEEP =
+#i686-Linux-2.0.32 AR = ar rc
+#i686-Linux-2.0.32 RANLIB = ranlib
+#i686-Linux-2.0.32 SCCLDFLAGS =
+#i686-Linux-2.0.32 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.32       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.32 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.32         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.33 CC = gcc
+#i686-Linux-2.0.33 CFLAGS = -O2
+#i686-Linux-2.0.33 SCCFLAGS = -O2
+#i686-Linux-2.0.33 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.33              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.33              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.33              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.33 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.33                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.33                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.33 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.33 USLEEP =
+#i686-Linux-2.0.33 AR = ar rc
+#i686-Linux-2.0.33 RANLIB = ranlib
+#i686-Linux-2.0.33 SCCLDFLAGS =
+#i686-Linux-2.0.33 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.33       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.33 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.33         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.34 CC = egcs
+#i686-Linux-2.0.34 CFLAGS = -O2
+#i686-Linux-2.0.34 SCCFLAGS = -O2
+#i686-Linux-2.0.34 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.34              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.34              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.34              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.34 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.34                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.34                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.34 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.34 USLEEP =
+#i686-Linux-2.0.34 AR = ar rc
+#i686-Linux-2.0.34 RANLIB = ranlib
+#i686-Linux-2.0.34 SCCLDFLAGS =
+#i686-Linux-2.0.34 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.34       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.34 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.34         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.0.35 CC = egcs
+#i686-Linux-2.0.35 CFLAGS = -O2
+#i686-Linux-2.0.35 SCCFLAGS = -O2
+#i686-Linux-2.0.35 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.0.35              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.0.35              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.0.35              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.0.35 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.0.35                -ffast-math -finline-functions -O2\
+#i686-Linux-2.0.35                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.0.35 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.0.35 USLEEP =
+#i686-Linux-2.0.35 AR = ar rc
+#i686-Linux-2.0.35 RANLIB = ranlib
+#i686-Linux-2.0.35 SCCLDFLAGS =
+#i686-Linux-2.0.35 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.35       -L/usr/X11/lib -lX11
+#i686-Linux-2.0.35 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.0.35         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.2.1 CC = egcs
+#i686-Linux-2.2.1 CFLAGS = -O2
+#i686-Linux-2.2.1 SCCFLAGS = -O2
+#i686-Linux-2.2.1 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.1              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.1 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.2.1                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.1                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.1 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.1 USLEEP =
+#i686-Linux-2.2.1 AR = ar rc
+#i686-Linux-2.2.1 RANLIB = ranlib
+#i686-Linux-2.2.1 SCCLDFLAGS =
+#i686-Linux-2.2.1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.1       -L/usr/X11/lib -lX11
+#i686-Linux-2.2.1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.1         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.2.5 CC = egcs
+#i686-Linux-2.2.5 CFLAGS = -O2
+#i686-Linux-2.2.5 SCCFLAGS = -O2
+#i686-Linux-2.2.5 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.5              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.5 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.2.5                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.5                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.5 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.5 USLEEP =
+#i686-Linux-2.2.5 AR = ar rc
+#i686-Linux-2.2.5 RANLIB = ranlib
+#i686-Linux-2.2.5 SCCLDFLAGS =
+#i686-Linux-2.2.5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.5       -L/usr/X11/lib -lX11
+#i686-Linux-2.2.5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.5         -L/usr/X11/lib -lX11
+
+#i686-Linux-2.2.5-15 CC = egcs
+#i686-Linux-2.2.5-15 CFLAGS = -O2
+#i686-Linux-2.2.5-15 SCCFLAGS = -O2
+#i686-Linux-2.2.5-15 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.5-15              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.5-15              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.5-15              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.5-15 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.2.5-15                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.5-15                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.5-15 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.5-15 USLEEP =
+#i686-Linux-2.2.5-15 AR = ar rc
+#i686-Linux-2.2.5-15 RANLIB = ranlib
+#i686-Linux-2.2.5-15 SCCLDFLAGS =
+#i686-Linux-2.2.5-15 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.5-15       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.2.5-15 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.5-15         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.2.10 CC = egcs
+#i686-Linux-2.2.10 CFLAGS = -O2
+#i686-Linux-2.2.10 SCCFLAGS = -O2
+#i686-Linux-2.2.10 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.10              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.10              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.10              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.10 ENCODECFLAGS = -I/usr/include -m486 -fomit-frame-pointer\
+#i686-Linux-2.2.10                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.10                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.10 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.10 USLEEP =
+#i686-Linux-2.2.10 AR = ar rc
+#i686-Linux-2.2.10 RANLIB = ranlib
+#i686-Linux-2.2.10 SCCLDFLAGS =
+#i686-Linux-2.2.10 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.10       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.2.10 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.10         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.2.12-20 CC = egcs
+#i686-Linux-2.2.12-20 CFLAGS = -O2
+#i686-Linux-2.2.12-20 SCCFLAGS = -O2
+#i686-Linux-2.2.12-20 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.12-20              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.12-20              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.12-20              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.12-20 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.2.12-20                -fomit-frame-pointer\
+#i686-Linux-2.2.12-20                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.12-20                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.12-20 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.12-20 USLEEP =
+#i686-Linux-2.2.12-20 AR = ar rc
+#i686-Linux-2.2.12-20 RANLIB = ranlib
+#i686-Linux-2.2.12-20 SCCLDFLAGS =
+#i686-Linux-2.2.12-20 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.12-20       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.2.12-20 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.12-20         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.2.12-20smp CC = egcs
+#i686-Linux-2.2.12-20smp CFLAGS = -O2
+#i686-Linux-2.2.12-20smp SCCFLAGS = -O2
+#i686-Linux-2.2.12-20smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.2.12-20smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.2.12-20smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.2.12-20smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.2.12-20smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.2.12-20smp                -fomit-frame-pointer\
+#i686-Linux-2.2.12-20smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.2.12-20smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.2.12-20smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.2.12-20smp USLEEP =
+#i686-Linux-2.2.12-20smp AR = ar rc
+#i686-Linux-2.2.12-20smp RANLIB = ranlib
+#i686-Linux-2.2.12-20smp SCCLDFLAGS =
+#i686-Linux-2.2.12-20smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.12-20smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.2.12-20smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.2.12-20smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.3.42 CC = egcs
+#i686-Linux-2.3.42 CFLAGS = -O2
+#i686-Linux-2.3.42 SCCFLAGS = -O2
+#i686-Linux-2.3.42 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.3.42              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.3.42              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.3.42              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.3.42 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.3.42                -fomit-frame-pointer\
+#i686-Linux-2.3.42                -ffast-math -finline-functions -O2\
+#i686-Linux-2.3.42                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.3.42 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.3.42 USLEEP =
+#i686-Linux-2.3.42 AR = ar rc
+#i686-Linux-2.3.42 RANLIB = ranlib
+#i686-Linux-2.3.42 SCCLDFLAGS =
+#i686-Linux-2.3.42 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.3.42       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.3.42 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.3.42         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.2-2 CC = gcc
+#i686-Linux-2.4.2-2 CFLAGS = -O2
+#i686-Linux-2.4.2-2 SCCFLAGS = -O2
+#i686-Linux-2.4.2-2 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.2-2              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.2-2              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.2-2              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.2-2 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.2-2                -fomit-frame-pointer\
+#i686-Linux-2.4.2-2                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.2-2                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.2-2 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.2-2 USLEEP =
+#i686-Linux-2.4.2-2 AR = ar rc
+#i686-Linux-2.4.2-2 RANLIB = ranlib
+#i686-Linux-2.4.2-2 SCCLDFLAGS =
+#i686-Linux-2.4.2-2 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.2-2       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.2-2 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.2-2         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.2-2smp CC = gcc
+#i686-Linux-2.4.2-2smp CFLAGS = -O2
+#i686-Linux-2.4.2-2smp SCCFLAGS = -O2
+#i686-Linux-2.4.2-2smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.2-2smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.2-2smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.2-2smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.2-2smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.2-2smp                -fomit-frame-pointer\
+#i686-Linux-2.4.2-2smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.2-2smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.2-2smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.2-2smp USLEEP =
+#i686-Linux-2.4.2-2smp AR = ar rc
+#i686-Linux-2.4.2-2smp RANLIB = ranlib
+#i686-Linux-2.4.2-2smp SCCLDFLAGS =
+#i686-Linux-2.4.2-2smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.2-2smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.2-2smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.2-2smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.7 CC = gcc
+#i686-Linux-2.4.7 CFLAGS = -O2
+#i686-Linux-2.4.7 SCCFLAGS = -O2
+#i686-Linux-2.4.7 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.7              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.7              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.7              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.7 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.7                -fomit-frame-pointer\
+#i686-Linux-2.4.7                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.7                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.7 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.7 USLEEP =
+#i686-Linux-2.4.7 AR = ar rc
+#i686-Linux-2.4.7 RANLIB = ranlib
+#i686-Linux-2.4.7 SCCLDFLAGS =
+#i686-Linux-2.4.7 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.7 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.7-10 CC = gcc
+#i686-Linux-2.4.7-10 CFLAGS = -O2
+#i686-Linux-2.4.7-10 SCCFLAGS = -O2
+#i686-Linux-2.4.7-10 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.7-10              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.7-10              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.7-10              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.7-10 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.7-10                -fomit-frame-pointer\
+#i686-Linux-2.4.7-10                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.7-10                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.7-10 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.7-10 USLEEP =
+#i686-Linux-2.4.7-10 AR = ar rc
+#i686-Linux-2.4.7-10 RANLIB = ranlib
+#i686-Linux-2.4.7-10 SCCLDFLAGS =
+#i686-Linux-2.4.7-10 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7-10       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.7-10 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7-10         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.7-10smp CC = gcc
+#i686-Linux-2.4.7-10smp CFLAGS = -O2
+#i686-Linux-2.4.7-10smp SCCFLAGS = -O2
+#i686-Linux-2.4.7-10smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.7-10smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.7-10smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.7-10smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.7-10smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.7-10smp                -fomit-frame-pointer\
+#i686-Linux-2.4.7-10smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.7-10smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.7-10smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.7-10smp USLEEP =
+#i686-Linux-2.4.7-10smp AR = ar rc
+#i686-Linux-2.4.7-10smp RANLIB = ranlib
+#i686-Linux-2.4.7-10smp SCCLDFLAGS =
+#i686-Linux-2.4.7-10smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7-10smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.7-10smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.7-10smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.9-13 CC = gcc
+#i686-Linux-2.4.9-13 CFLAGS = -O2
+#i686-Linux-2.4.9-13 SCCFLAGS = -O2
+#i686-Linux-2.4.9-13 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.9-13              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.9-13              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.9-13              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.9-13 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.9-13                -fomit-frame-pointer\
+#i686-Linux-2.4.9-13                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.9-13                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.9-13 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.9-13 USLEEP =
+#i686-Linux-2.4.9-13 AR = ar rc
+#i686-Linux-2.4.9-13 RANLIB = ranlib
+#i686-Linux-2.4.9-13 SCCLDFLAGS =
+#i686-Linux-2.4.9-13 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.9-13       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.9-13 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.9-13         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.17-0.13ecn1 CC = gcc
+#i686-Linux-2.4.17-0.13ecn1 CFLAGS = -O2
+#i686-Linux-2.4.17-0.13ecn1 SCCFLAGS = -O2
+#i686-Linux-2.4.17-0.13ecn1 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.17-0.13ecn1              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.17-0.13ecn1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.17-0.13ecn1              -I/usr/include\
+#i686-Linux-2.4.17-0.13ecn1              -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.17-0.13ecn1 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.17-0.13ecn1                -fomit-frame-pointer\
+#i686-Linux-2.4.17-0.13ecn1                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.17-0.13ecn1                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.17-0.13ecn1 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.17-0.13ecn1 USLEEP =
+#i686-Linux-2.4.17-0.13ecn1 AR = ar rc
+#i686-Linux-2.4.17-0.13ecn1 RANLIB = ranlib
+#i686-Linux-2.4.17-0.13ecn1 SCCLDFLAGS =
+#i686-Linux-2.4.17-0.13ecn1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.17-0.13ecn1       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.17-0.13ecn1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.17-0.13ecn1         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.18-4_72smp CC = gcc
+#i686-Linux-2.4.18-4_72smp CFLAGS = -O2
+#i686-Linux-2.4.18-4_72smp SCCFLAGS = -O2
+#i686-Linux-2.4.18-4_72smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.18-4_72smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.18-4_72smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.18-4_72smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.18-4_72smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.18-4_72smp                -fomit-frame-pointer\
+#i686-Linux-2.4.18-4_72smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.18-4_72smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.18-4_72smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.18-4_72smp USLEEP =
+#i686-Linux-2.4.18-4_72smp AR = ar rc
+#i686-Linux-2.4.18-4_72smp RANLIB = ranlib
+#i686-Linux-2.4.18-4_72smp SCCLDFLAGS =
+#i686-Linux-2.4.18-4_72smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-4_72smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.18-4_72smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-4_72smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.18-19.7.x CC = gcc
+#i686-Linux-2.4.18-19.7.x CFLAGS = -O2
+#i686-Linux-2.4.18-19.7.x SCCFLAGS = -O2
+#i686-Linux-2.4.18-19.7.x PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.18-19.7.x              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.18-19.7.x              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.18-19.7.x              -I/usr/include\
+#i686-Linux-2.4.18-19.7.x              -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.18-19.7.x ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.18-19.7.x                -fomit-frame-pointer\
+#i686-Linux-2.4.18-19.7.x                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.18-19.7.x                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.18-19.7.x JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.18-19.7.x USLEEP =
+#i686-Linux-2.4.18-19.7.x AR = ar rc
+#i686-Linux-2.4.18-19.7.x RANLIB = ranlib
+#i686-Linux-2.4.18-19.7.x SCCLDFLAGS =
+#i686-Linux-2.4.18-19.7.x LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-19.7.x       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.18-19.7.x ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-19.7.x         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.18-24.7.x CC = gcc
+#i686-Linux-2.4.18-24.7.x CFLAGS = -O2
+#i686-Linux-2.4.18-24.7.x SCCFLAGS = -O2
+#i686-Linux-2.4.18-24.7.x PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.18-24.7.x              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.18-24.7.x              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.18-24.7.x              -I/usr/include\
+#i686-Linux-2.4.18-24.7.x              -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.18-24.7.x ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.18-24.7.x                -fomit-frame-pointer\
+#i686-Linux-2.4.18-24.7.x                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.18-24.7.x                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.18-24.7.x JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.18-24.7.x USLEEP =
+#i686-Linux-2.4.18-24.7.x AR = ar rc
+#i686-Linux-2.4.18-24.7.x RANLIB = ranlib
+#i686-Linux-2.4.18-24.7.x SCCLDFLAGS =
+#i686-Linux-2.4.18-24.7.x LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-24.7.x       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.18-24.7.x ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.18-24.7.x         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.20-9smp CC = gcc
+#i686-Linux-2.4.20-9smp CFLAGS = -O2
+#i686-Linux-2.4.20-9smp SCCFLAGS = -O2
+#i686-Linux-2.4.20-9smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.20-9smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.20-9smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.20-9smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.20-9smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.20-9smp                -fomit-frame-pointer\
+#i686-Linux-2.4.20-9smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.20-9smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.20-9smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.20-9smp USLEEP =
+#i686-Linux-2.4.20-9smp AR = ar rc
+#i686-Linux-2.4.20-9smp RANLIB = ranlib
+#i686-Linux-2.4.20-9smp SCCLDFLAGS =
+#i686-Linux-2.4.20-9smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.20-9smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.20-9smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.20-9smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.21-32.0.1.ELsmp CC = gcc
+#i686-Linux-2.4.21-32.0.1.ELsmp CFLAGS = -O2
+#i686-Linux-2.4.21-32.0.1.ELsmp SCCFLAGS = -O2
+#i686-Linux-2.4.21-32.0.1.ELsmp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.21-32.0.1.ELsmp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.21-32.0.1.ELsmp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.21-32.0.1.ELsmp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.21-32.0.1.ELsmp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.21-32.0.1.ELsmp                -fomit-frame-pointer\
+#i686-Linux-2.4.21-32.0.1.ELsmp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.21-32.0.1.ELsmp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.21-32.0.1.ELsmp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.21-32.0.1.ELsmp USLEEP =
+#i686-Linux-2.4.21-32.0.1.ELsmp AR = ar rc
+#i686-Linux-2.4.21-32.0.1.ELsmp RANLIB = ranlib
+#i686-Linux-2.4.21-32.0.1.ELsmp SCCLDFLAGS =
+#i686-Linux-2.4.21-32.0.1.ELsmp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-32.0.1.ELsmp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.21-32.0.1.ELsmp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-32.0.1.ELsmp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.21-37.ELsmp CC = gcc
+#i686-Linux-2.4.21-37.ELsmp CFLAGS = -O2
+#i686-Linux-2.4.21-37.ELsmp SCCFLAGS = -O2
+#i686-Linux-2.4.21-37.ELsmp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.21-37.ELsmp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.21-37.ELsmp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.21-37.ELsmp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.21-37.ELsmp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.21-37.ELsmp                -fomit-frame-pointer\
+#i686-Linux-2.4.21-37.ELsmp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.21-37.ELsmp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.21-37.ELsmp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.21-37.ELsmp USLEEP =
+#i686-Linux-2.4.21-37.ELsmp AR = ar rc
+#i686-Linux-2.4.21-37.ELsmp RANLIB = ranlib
+#i686-Linux-2.4.21-37.ELsmp SCCLDFLAGS =
+#i686-Linux-2.4.21-37.ELsmp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-37.ELsmp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.21-37.ELsmp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-37.ELsmp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.4.21-47.ELsmp CC = gcc
+#i686-Linux-2.4.21-47.ELsmp CFLAGS = -O2
+#i686-Linux-2.4.21-47.ELsmp SCCFLAGS = -O2
+#i686-Linux-2.4.21-47.ELsmp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.4.21-47.ELsmp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.4.21-47.ELsmp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.4.21-47.ELsmp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.4.21-47.ELsmp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.4.21-47.ELsmp                -fomit-frame-pointer\
+#i686-Linux-2.4.21-47.ELsmp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.4.21-47.ELsmp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.4.21-47.ELsmp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.4.21-47.ELsmp USLEEP =
+#i686-Linux-2.4.21-47.ELsmp AR = ar rc
+#i686-Linux-2.4.21-47.ELsmp RANLIB = ranlib
+#i686-Linux-2.4.21-47.ELsmp SCCLDFLAGS =
+#i686-Linux-2.4.21-47.ELsmp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-47.ELsmp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.4.21-47.ELsmp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.4.21-47.ELsmp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.8.1 CC = gcc
+#i686-Linux-2.6.8.1 CFLAGS = -O2
+#i686-Linux-2.6.8.1 SCCFLAGS = -O2
+#i686-Linux-2.6.8.1 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.8.1              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.8.1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.8.1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.8.1 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.8.1                -fomit-frame-pointer\
+#i686-Linux-2.6.8.1                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.8.1                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.8.1 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.8.1 USLEEP =
+#i686-Linux-2.6.8.1 AR = ar rc
+#i686-Linux-2.6.8.1 RANLIB = ranlib
+#i686-Linux-2.6.8.1 SCCLDFLAGS =
+#i686-Linux-2.6.8.1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.8.1       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.8.1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.8.1         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.11.11-laptop CC = gcc
+#i686-Linux-2.6.11.11-laptop CFLAGS = -O2
+#i686-Linux-2.6.11.11-laptop SCCFLAGS = -O2
+#i686-Linux-2.6.11.11-laptop PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.11.11-laptop              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.11.11-laptop              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.11.11-laptop              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.11.11-laptop ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.11.11-laptop                -fomit-frame-pointer\
+#i686-Linux-2.6.11.11-laptop                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.11.11-laptop                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.11.11-laptop JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.11.11-laptop USLEEP =
+#i686-Linux-2.6.11.11-laptop AR = ar rc
+#i686-Linux-2.6.11.11-laptop RANLIB = ranlib
+#i686-Linux-2.6.11.11-laptop SCCLDFLAGS =
+#i686-Linux-2.6.11.11-laptop LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.11.11-laptop       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.11.11-laptop ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.11.11-laptop         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.15-1-k7-smp CC = gcc
+#i686-Linux-2.6.15-1-k7-smp CFLAGS = -O2
+#i686-Linux-2.6.15-1-k7-smp SCCFLAGS = -O2
+#i686-Linux-2.6.15-1-k7-smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.15-1-k7-smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.15-1-k7-smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.15-1-k7-smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.15-1-k7-smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.15-1-k7-smp                -fomit-frame-pointer\
+#i686-Linux-2.6.15-1-k7-smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.15-1-k7-smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.15-1-k7-smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.15-1-k7-smp USLEEP =
+#i686-Linux-2.6.15-1-k7-smp AR = ar rc
+#i686-Linux-2.6.15-1-k7-smp RANLIB = ranlib
+#i686-Linux-2.6.15-1-k7-smp SCCLDFLAGS =
+#i686-Linux-2.6.15-1-k7-smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.15-1-k7-smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.15-1-k7-smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.15-1-k7-smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.17-1.2139_FC5smp CC = gcc
+#i686-Linux-2.6.17-1.2139_FC5smp CFLAGS = -O2
+#i686-Linux-2.6.17-1.2139_FC5smp SCCFLAGS = -O2
+#i686-Linux-2.6.17-1.2139_FC5smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.17-1.2139_FC5smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.17-1.2139_FC5smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.17-1.2139_FC5smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.17-1.2139_FC5smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.17-1.2139_FC5smp                -fomit-frame-pointer\
+#i686-Linux-2.6.17-1.2139_FC5smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.17-1.2139_FC5smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.17-1.2139_FC5smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.17-1.2139_FC5smp USLEEP =
+#i686-Linux-2.6.17-1.2139_FC5smp AR = ar rc
+#i686-Linux-2.6.17-1.2139_FC5smp RANLIB = ranlib
+#i686-Linux-2.6.17-1.2139_FC5smp SCCLDFLAGS =
+#i686-Linux-2.6.17-1.2139_FC5smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.17-1.2139_FC5smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.17-1.2139_FC5smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.17-1.2139_FC5smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.17-1.2174_FC5smp CC = gcc
+#i686-Linux-2.6.17-1.2174_FC5smp CFLAGS = -O2
+#i686-Linux-2.6.17-1.2174_FC5smp SCCFLAGS = -O2
+#i686-Linux-2.6.17-1.2174_FC5smp PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.17-1.2174_FC5smp              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.17-1.2174_FC5smp              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.17-1.2174_FC5smp              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.17-1.2174_FC5smp ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.17-1.2174_FC5smp                -fomit-frame-pointer\
+#i686-Linux-2.6.17-1.2174_FC5smp                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.17-1.2174_FC5smp                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.17-1.2174_FC5smp JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.17-1.2174_FC5smp USLEEP =
+#i686-Linux-2.6.17-1.2174_FC5smp AR = ar rc
+#i686-Linux-2.6.17-1.2174_FC5smp RANLIB = ranlib
+#i686-Linux-2.6.17-1.2174_FC5smp SCCLDFLAGS =
+#i686-Linux-2.6.17-1.2174_FC5smp LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.17-1.2174_FC5smp       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.17-1.2174_FC5smp ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.17-1.2174_FC5smp         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.18-3-k7 CC = gcc
+#i686-Linux-2.6.18-3-k7 CFLAGS = -O2
+#i686-Linux-2.6.18-3-k7 SCCFLAGS = -O2
+#i686-Linux-2.6.18-3-k7 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.18-3-k7              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.18-3-k7              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.18-3-k7              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.18-3-k7 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.18-3-k7                -fomit-frame-pointer\
+#i686-Linux-2.6.18-3-k7                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.18-3-k7                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.18-3-k7 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.18-3-k7 USLEEP =
+#i686-Linux-2.6.18-3-k7 AR = ar rc
+#i686-Linux-2.6.18-3-k7 RANLIB = ranlib
+#i686-Linux-2.6.18-3-k7 SCCLDFLAGS =
+#i686-Linux-2.6.18-3-k7 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-3-k7       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.18-3-k7 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-3-k7         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.18-5-k7 CC = gcc
+#i686-Linux-2.6.18-5-k7 CFLAGS = -O2
+#i686-Linux-2.6.18-5-k7 SCCFLAGS = -O2
+#i686-Linux-2.6.18-5-k7 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.18-5-k7              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.18-5-k7              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.18-5-k7              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.18-5-k7 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.18-5-k7                -fomit-frame-pointer\
+#i686-Linux-2.6.18-5-k7                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.18-5-k7                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.18-5-k7 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.18-5-k7 USLEEP =
+#i686-Linux-2.6.18-5-k7 AR = ar rc
+#i686-Linux-2.6.18-5-k7 RANLIB = ranlib
+#i686-Linux-2.6.18-5-k7 SCCLDFLAGS =
+#i686-Linux-2.6.18-5-k7 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-5-k7       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.18-5-k7 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-5-k7         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.18-6-k7 CC = gcc
+#i686-Linux-2.6.18-6-k7 CFLAGS = -O2
+#i686-Linux-2.6.18-6-k7 SCCFLAGS = -O2
+#i686-Linux-2.6.18-6-k7 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.18-6-k7              -finline-functions -m486 -DNDEBUG\
+#i686-Linux-2.6.18-6-k7              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.18-6-k7              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.18-6-k7 ENCODECFLAGS = -I/usr/include -m486\
+#i686-Linux-2.6.18-6-k7                -fomit-frame-pointer\
+#i686-Linux-2.6.18-6-k7                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.18-6-k7                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.18-6-k7 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.18-6-k7 USLEEP =
+#i686-Linux-2.6.18-6-k7 AR = ar rc
+#i686-Linux-2.6.18-6-k7 RANLIB = ranlib
+#i686-Linux-2.6.18-6-k7 SCCLDFLAGS =
+#i686-Linux-2.6.18-6-k7 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-6-k7       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.18-6-k7 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.18-6-k7         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.22.14-72.fc6 CC = gcc
+#i686-Linux-2.6.22.14-72.fc6 CFLAGS = -O2
+#i686-Linux-2.6.22.14-72.fc6 SCCFLAGS = -O2
+#i686-Linux-2.6.22.14-72.fc6 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.22.14-72.fc6              -finline-functions -DNDEBUG\
+#i686-Linux-2.6.22.14-72.fc6              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.22.14-72.fc6              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.22.14-72.fc6 ENCODECFLAGS = -I/usr/include\
+#i686-Linux-2.6.22.14-72.fc6                -fomit-frame-pointer\
+#i686-Linux-2.6.22.14-72.fc6                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.22.14-72.fc6                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.22.14-72.fc6 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.22.14-72.fc6 USLEEP =
+#i686-Linux-2.6.22.14-72.fc6 AR = ar rc
+#i686-Linux-2.6.22.14-72.fc6 RANLIB = ranlib
+#i686-Linux-2.6.22.14-72.fc6 SCCLDFLAGS =
+#i686-Linux-2.6.22.14-72.fc6 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.22.14-72.fc6       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.22.14-72.fc6 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.22.14-72.fc6         -L/usr/X11R6/lib -lX11
+
+#i686-Linux-2.6.26-2-686 CC = gcc -Wall
+#i686-Linux-2.6.26-2-686 CFLAGS = -O2
+#i686-Linux-2.6.26-2-686 SCCFLAGS = -O2
+#i686-Linux-2.6.26-2-686 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i686-Linux-2.6.26-2-686              -finline-functions -DNDEBUG\
+#i686-Linux-2.6.26-2-686              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Linux-2.6.26-2-686              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Linux-2.6.26-2-686 ENCODECFLAGS = -I/usr/include\
+#i686-Linux-2.6.26-2-686                -fomit-frame-pointer\
+#i686-Linux-2.6.26-2-686                -ffast-math -finline-functions -O2\
+#i686-Linux-2.6.26-2-686                -DLONG_32 -DSYSV -DLINUX
+#i686-Linux-2.6.26-2-686 JPEGCFLAGS = -O2 -DINLINE_YES
+#i686-Linux-2.6.26-2-686 USLEEP =
+#i686-Linux-2.6.26-2-686 AR = ar rc
+#i686-Linux-2.6.26-2-686 RANLIB = ranlib
+#i686-Linux-2.6.26-2-686 SCCLDFLAGS =
+#i686-Linux-2.6.26-2-686 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.26-2-686       -L/usr/X11R6/lib -lX11
+#i686-Linux-2.6.26-2-686 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Linux-2.6.26-2-686         -L/usr/X11R6/lib -lX11
+
+#i686-Debian-5.0.1 CC = gcc -Wall
+#i686-Debian-5.0.1 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#i686-Debian-5.0.1 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#i686-Debian-5.0.1 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#i686-Debian-5.0.1              -finline-functions -DNDEBUG\
+#i686-Debian-5.0.1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i686-Debian-5.0.1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#i686-Debian-5.0.1 ENCODECFLAGS = -I/usr/include\
+#i686-Debian-5.0.1                -fomit-frame-pointer\
+#i686-Debian-5.0.1                -ffast-math -finline-functions -O2\
+#i686-Debian-5.0.1                -mno-sse2 -mno-sse3\
+#i686-Debian-5.0.1                -DSYSV -DLINUX
+#i686-Debian-5.0.1 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#i686-Debian-5.0.1 USLEEP =
+#i686-Debian-5.0.1 AR = ar rc
+#i686-Debian-5.0.1 RANLIB = ranlib
+#i686-Debian-5.0.1 SCCLDFLAGS =
+#i686-Debian-5.0.1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i686-Debian-5.0.1       -L/usr/X11R6/lib -lX11 -lsigsegv
+#i686-Debian-5.0.1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i686-Debian-5.0.1         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Linux-2.6.18-4-amd64 CC = gcc
+#x86_64-Linux-2.6.18-4-amd64 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-4-amd64 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-4-amd64 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-4-amd64              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-4-amd64              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-4-amd64              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-4-amd64 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-4-amd64                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-4-amd64                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-4-amd64                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-4-amd64                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-4-amd64 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-4-amd64 USLEEP =
+#x86_64-Linux-2.6.18-4-amd64 AR = ar rc
+#x86_64-Linux-2.6.18-4-amd64 RANLIB = ranlib
+#x86_64-Linux-2.6.18-4-amd64 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-4-amd64 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-4-amd64       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-4-amd64 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-4-amd64         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-5-amd64 CC = gcc
+#x86_64-Linux-2.6.18-5-amd64 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-5-amd64 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-5-amd64 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-5-amd64              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-5-amd64              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-5-amd64              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-5-amd64 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-5-amd64                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-5-amd64                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-5-amd64                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-5-amd64                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-5-amd64 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-5-amd64 USLEEP =
+#x86_64-Linux-2.6.18-5-amd64 AR = ar rc
+#x86_64-Linux-2.6.18-5-amd64 RANLIB = ranlib
+#x86_64-Linux-2.6.18-5-amd64 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-5-amd64 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-5-amd64       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-5-amd64 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-5-amd64         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-6-amd64 CC = gcc
+#x86_64-Linux-2.6.18-6-amd64 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-6-amd64 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-6-amd64 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-6-amd64              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-6-amd64              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-6-amd64              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-6-amd64 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-6-amd64                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-6-amd64                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-6-amd64                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-6-amd64                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-6-amd64 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-6-amd64 USLEEP =
+#x86_64-Linux-2.6.18-6-amd64 AR = ar rc
+#x86_64-Linux-2.6.18-6-amd64 RANLIB = ranlib
+#x86_64-Linux-2.6.18-6-amd64 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-6-amd64 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-6-amd64       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-6-amd64 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-6-amd64         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-92.1.10.el5 CC = gcc
+#x86_64-Linux-2.6.18-92.1.10.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-92.1.10.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-92.1.10.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-92.1.10.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-92.1.10.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-92.1.10.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-92.1.10.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-92.1.10.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-92.1.10.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-92.1.10.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-92.1.10.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-92.1.10.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-92.1.10.el5 USLEEP =
+#x86_64-Linux-2.6.18-92.1.10.el5 AR = ar rc
+#x86_64-Linux-2.6.18-92.1.10.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-92.1.10.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-92.1.10.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-92.1.10.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-92.1.10.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-92.1.10.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-92.1.18.el5 CC = gcc
+#x86_64-Linux-2.6.18-92.1.18.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-92.1.18.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-92.1.18.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-92.1.18.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-92.1.18.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-92.1.18.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-92.1.18.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-92.1.18.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-92.1.18.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-92.1.18.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-92.1.18.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-92.1.18.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-92.1.18.el5 USLEEP =
+#x86_64-Linux-2.6.18-92.1.18.el5 AR = ar rc
+#x86_64-Linux-2.6.18-92.1.18.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-92.1.18.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-92.1.18.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-92.1.18.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-92.1.18.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-92.1.18.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-128.1.16.el5 CC = gcc
+#x86_64-Linux-2.6.18-128.1.16.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.1.16.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.1.16.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-128.1.16.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-128.1.16.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-128.1.16.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-128.1.16.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-128.1.16.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-128.1.16.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-128.1.16.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-128.1.16.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-128.1.16.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-128.1.16.el5 USLEEP =
+#x86_64-Linux-2.6.18-128.1.16.el5 AR = ar rc
+#x86_64-Linux-2.6.18-128.1.16.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-128.1.16.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-128.1.16.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.1.16.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-128.1.16.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.1.16.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-128.2.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-128.2.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.2.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.2.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-128.2.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-128.2.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-128.2.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-128.2.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-128.2.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-128.2.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-128.2.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-128.2.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-128.2.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-128.2.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-128.2.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-128.2.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-128.2.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-128.2.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.2.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-128.2.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.2.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-128.4.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-128.4.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.4.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.4.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-128.4.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-128.4.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-128.4.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-128.4.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-128.4.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-128.4.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-128.4.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-128.4.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-128.4.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-128.4.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-128.4.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-128.4.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-128.4.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-128.4.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.4.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-128.4.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.4.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-128.7.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-128.7.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.7.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-128.7.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-128.7.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-128.7.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-128.7.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-128.7.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-128.7.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-128.7.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-128.7.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-128.7.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-128.7.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-128.7.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-128.7.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-128.7.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-128.7.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-128.7.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.7.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-128.7.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-128.7.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-164.el5 CC = gcc
+#x86_64-Linux-2.6.18-164.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-164.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-164.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-164.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-164.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-164.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-164.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-164.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-164.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-164.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-164.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-164.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-164.el5 USLEEP =
+#x86_64-Linux-2.6.18-164.el5 AR = ar rc
+#x86_64-Linux-2.6.18-164.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-164.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-164.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-164.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-164.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-164.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-194.11.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-194.11.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-194.11.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-194.11.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-194.11.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-194.11.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-194.11.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-194.11.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-194.11.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-194.11.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-194.11.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-194.11.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-194.11.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-194.11.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-194.11.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-194.11.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-194.11.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-194.11.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-194.11.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-194.11.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-194.11.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-194.32.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-194.32.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-194.32.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-194.32.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-194.32.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-194.32.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-194.32.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-194.32.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-194.32.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-194.32.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-194.32.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-194.32.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-194.32.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-194.32.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-194.32.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-194.32.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-194.32.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-194.32.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-194.32.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-194.32.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-194.32.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-274.el5 CC = gcc
+#x86_64-Linux-2.6.18-274.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-274.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-274.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-274.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-274.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-274.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-274.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-274.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-274.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-274.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-274.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-274.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-274.el5 USLEEP =
+#x86_64-Linux-2.6.18-274.el5 AR = ar rc
+#x86_64-Linux-2.6.18-274.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-274.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-274.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-274.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-274.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-274.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.18-274.12.1.el5 CC = gcc
+#x86_64-Linux-2.6.18-274.12.1.el5 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-274.12.1.el5 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.18-274.12.1.el5 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.18-274.12.1.el5              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.18-274.12.1.el5              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.18-274.12.1.el5              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.18-274.12.1.el5 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.18-274.12.1.el5                -fomit-frame-pointer\
+#x86_64-Linux-2.6.18-274.12.1.el5                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.18-274.12.1.el5                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.18-274.12.1.el5                -DSYSV -DLINUX
+#x86_64-Linux-2.6.18-274.12.1.el5 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.18-274.12.1.el5 USLEEP =
+#x86_64-Linux-2.6.18-274.12.1.el5 AR = ar rc
+#x86_64-Linux-2.6.18-274.12.1.el5 RANLIB = ranlib
+#x86_64-Linux-2.6.18-274.12.1.el5 SCCLDFLAGS =
+#x86_64-Linux-2.6.18-274.12.1.el5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-274.12.1.el5       -L/usr/X11R6/lib -lX11
+#x86_64-Linux-2.6.18-274.12.1.el5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.18-274.12.1.el5         -L/usr/X11R6/lib -lX11
+
+#x86_64-Linux-2.6.25-rc7 CC = gcc
+#x86_64-Linux-2.6.25-rc7 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.25-rc7 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Linux-2.6.25-rc7 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Linux-2.6.25-rc7              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.25-rc7              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.25-rc7              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.25-rc7 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.25-rc7                -fomit-frame-pointer\
+#x86_64-Linux-2.6.25-rc7                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.25-rc7                -mno-sse2 -mno-sse3\
+#x86_64-Linux-2.6.25-rc7                -DSYSV -DLINUX
+#x86_64-Linux-2.6.25-rc7 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Linux-2.6.25-rc7 USLEEP =
+#x86_64-Linux-2.6.25-rc7 AR = ar rc
+#x86_64-Linux-2.6.25-rc7 RANLIB = ranlib
+#x86_64-Linux-2.6.25-rc7 SCCLDFLAGS =
+#x86_64-Linux-2.6.25-rc7 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.25-rc7       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Linux-2.6.25-rc7 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.25-rc7         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Linux-2.6.26-2-amd64 CC = gcc
+#x86_64-Linux-2.6.26-2-amd64 CFLAGS = -O2
+#x86_64-Linux-2.6.26-2-amd64 SCCFLAGS = -O2
+#x86_64-Linux-2.6.26-2-amd64 PLAYCFLAGS = -O2 -ffast-math\
+#x86_64-Linux-2.6.26-2-amd64              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.26-2-amd64              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.26-2-amd64              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.26-2-amd64 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.26-2-amd64                -fomit-frame-pointer\
+#x86_64-Linux-2.6.26-2-amd64                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.26-2-amd64                -DSYSV -DLINUX
+#x86_64-Linux-2.6.26-2-amd64 JPEGCFLAGS = -O2 -DINLINE_YES
+#x86_64-Linux-2.6.26-2-amd64 USLEEP =
+#x86_64-Linux-2.6.26-2-amd64 AR = ar rc
+#x86_64-Linux-2.6.26-2-amd64 RANLIB = ranlib
+#x86_64-Linux-2.6.26-2-amd64 SCCLDFLAGS =
+#x86_64-Linux-2.6.26-2-amd64 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.26-2-amd64       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Linux-2.6.26-2-amd64 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.26-2-amd64         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Linux-2.6.32-5-amd64 CC = gcc -Wall
+#x86_64-Linux-2.6.32-5-amd64 CFLAGS = -O2
+#x86_64-Linux-2.6.32-5-amd64 SCCFLAGS = -O2
+#x86_64-Linux-2.6.32-5-amd64 PLAYCFLAGS = -O2 -ffast-math\
+#x86_64-Linux-2.6.32-5-amd64              -finline-functions -DNDEBUG\
+#x86_64-Linux-2.6.32-5-amd64              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Linux-2.6.32-5-amd64              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Linux-2.6.32-5-amd64 ENCODECFLAGS = -I/usr/include\
+#x86_64-Linux-2.6.32-5-amd64                -fomit-frame-pointer\
+#x86_64-Linux-2.6.32-5-amd64                -ffast-math -finline-functions -O2\
+#x86_64-Linux-2.6.32-5-amd64                -DSYSV -DLINUX
+#x86_64-Linux-2.6.32-5-amd64 JPEGCFLAGS = -O2 -DINLINE_YES
+#x86_64-Linux-2.6.32-5-amd64 USLEEP =
+#x86_64-Linux-2.6.32-5-amd64 AR = ar rc
+#x86_64-Linux-2.6.32-5-amd64 RANLIB = ranlib
+#x86_64-Linux-2.6.32-5-amd64 SCCLDFLAGS =
+#x86_64-Linux-2.6.32-5-amd64 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.32-5-amd64       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Linux-2.6.32-5-amd64 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Linux-2.6.32-5-amd64         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Debian-5.0.1 CC = gcc -Wall
+#x86_64-Debian-5.0.1 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Debian-5.0.1 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Debian-5.0.1 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Debian-5.0.1              -finline-functions -DNDEBUG\
+#x86_64-Debian-5.0.1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Debian-5.0.1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Debian-5.0.1 ENCODECFLAGS = -I/usr/include\
+#x86_64-Debian-5.0.1                -fomit-frame-pointer\
+#x86_64-Debian-5.0.1                -ffast-math -finline-functions -O2\
+#x86_64-Debian-5.0.1                -mno-sse2 -mno-sse3\
+#x86_64-Debian-5.0.1                -DSYSV -DLINUX
+#x86_64-Debian-5.0.1 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Debian-5.0.1 USLEEP =
+#x86_64-Debian-5.0.1 AR = ar rc
+#x86_64-Debian-5.0.1 RANLIB = ranlib
+#x86_64-Debian-5.0.1 SCCLDFLAGS =
+#x86_64-Debian-5.0.1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Debian-5.0.1       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Debian-5.0.1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Debian-5.0.1         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Debian CC = gcc -Wall
+#x86_64-Debian CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Debian SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Debian PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Debian              -finline-functions -DNDEBUG\
+#x86_64-Debian              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Debian              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Debian ENCODECFLAGS = -I/usr/include\
+#x86_64-Debian                -fomit-frame-pointer\
+#x86_64-Debian                -ffast-math -finline-functions -O2\
+#x86_64-Debian                -mno-sse2 -mno-sse3\
+#x86_64-Debian                -DSYSV -DLINUX
+#x86_64-Debian JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Debian USLEEP =
+#x86_64-Debian AR = ar rc
+#x86_64-Debian RANLIB = ranlib
+#x86_64-Debian SCCLDFLAGS =
+#x86_64-Debian LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Debian       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Debian ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Debian         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#x86_64-Gentoo-2.0.1 CC = gcc
+#x86_64-Gentoo-2.0.1 CFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Gentoo-2.0.1 SCCFLAGS = -O2 -mno-sse2 -mno-sse3
+#x86_64-Gentoo-2.0.1 PLAYCFLAGS = -O2 -mno-sse2 -mno-sse3 -ffast-math\
+#x86_64-Gentoo-2.0.1              -finline-functions -DNDEBUG\
+#x86_64-Gentoo-2.0.1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#x86_64-Gentoo-2.0.1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#x86_64-Gentoo-2.0.1 ENCODECFLAGS = -I/usr/include\
+#x86_64-Gentoo-2.0.1                -fomit-frame-pointer\
+#x86_64-Gentoo-2.0.1                -ffast-math -finline-functions -O2\
+#x86_64-Gentoo-2.0.1                -mno-sse2 -mno-sse3\
+#x86_64-Gentoo-2.0.1                -DSYSV -DLINUX
+#x86_64-Gentoo-2.0.1 JPEGCFLAGS = -O2 -mno-sse2 -mno-sse3 -DINLINE_YES
+#x86_64-Gentoo-2.0.1 USLEEP =
+#x86_64-Gentoo-2.0.1 AR = ar rc
+#x86_64-Gentoo-2.0.1 RANLIB = ranlib
+#x86_64-Gentoo-2.0.1 SCCLDFLAGS =
+#x86_64-Gentoo-2.0.1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Gentoo-2.0.1       -L/usr/X11R6/lib -lX11 -lsigsegv
+#x86_64-Gentoo-2.0.1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#x86_64-Gentoo-2.0.1         -L/usr/X11R6/lib -lX11 -lsigsegv
+
+#armv7l-Linux-2.6.28-omap1 CC = gcc
+#armv7l-Linux-2.6.28-omap1 CFLAGS = -O2
+#armv7l-Linux-2.6.28-omap1 SCCFLAGS = -O2
+#armv7l-Linux-2.6.28-omap1 PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#armv7l-Linux-2.6.28-omap1              -finline-functions -DNDEBUG\
+#armv7l-Linux-2.6.28-omap1              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#armv7l-Linux-2.6.28-omap1              -I/usr/include -DDEFAULT_ORDERED_DITHER
+#armv7l-Linux-2.6.28-omap1 ENCODECFLAGS = -I/usr/include\
+#armv7l-Linux-2.6.28-omap1                -fomit-frame-pointer\
+#armv7l-Linux-2.6.28-omap1                -ffast-math -finline-functions -O2\
+#armv7l-Linux-2.6.28-omap1                -DLONG_32 -DSYSV -DLINUX
+#armv7l-Linux-2.6.28-omap1 JPEGCFLAGS = -O2 -DINLINE_YES
+#armv7l-Linux-2.6.28-omap1 USLEEP =
+#armv7l-Linux-2.6.28-omap1 AR = ar rc
+#armv7l-Linux-2.6.28-omap1 RANLIB = ranlib
+#armv7l-Linux-2.6.28-omap1 SCCLDFLAGS =
+#armv7l-Linux-2.6.28-omap1 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#armv7l-Linux-2.6.28-omap1       -L/usr/X11R6/lib -lX11
+#armv7l-Linux-2.6.28-omap1 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#armv7l-Linux-2.6.28-omap1         -L/usr/X11R6/lib -lX11
+
+#i386-FreeBSD-2.2-STABLE CC = gcc
+#i386-FreeBSD-2.2-STABLE CFLAGS = -O2
+#i386-FreeBSD-2.2-STABLE SCCFLAGS = -O2
+#i386-FreeBSD-2.2-STABLE PLAYCFLAGS = -O2 -fomit-frame-pointer -ffast-math\
+#i386-FreeBSD-2.2-STABLE              -finline-functions -m486 -DNDEBUG\
+#i386-FreeBSD-2.2-STABLE              -DNONANSI_INCLUDES -DSIG_ONE_PARAM\
+#i386-FreeBSD-2.2-STABLE              -I/usr/include\
+#i386-FreeBSD-2.2-STABLE              -I/usr/X11R6/include\
+#i386-FreeBSD-2.2-STABLE              -DDEFAULT_ORDERED_DITHER
+#i386-FreeBSD-2.2-STABLE ENCODECFLAGS = -I/usr/include\
+#i386-FreeBSD-2.2-STABLE                -I/usr/X11R6/include\
+#i386-FreeBSD-2.2-STABLE                -m486\
+#i386-FreeBSD-2.2-STABLE                -fomit-frame-pointer\
+#i386-FreeBSD-2.2-STABLE                -ffast-math -finline-functions -O2\
+#i386-FreeBSD-2.2-STABLE                -DLONG_32 -DSYSV -DFREEBSD
+#i386-FreeBSD-2.2-STABLE JPEGCFLAGS = -O2 -DINLINE_YES
+#i386-FreeBSD-2.2-STABLE USLEEP =
+#i386-FreeBSD-2.2-STABLE AR = ar rc
+#i386-FreeBSD-2.2-STABLE RANLIB = ranlib
+#i386-FreeBSD-2.2-STABLE SCCLDFLAGS =
+#i386-FreeBSD-2.2-STABLE LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#i386-FreeBSD-2.2-STABLE       -L/usr/X11/lib -lX11
+#i386-FreeBSD-2.2-STABLE ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#i386-FreeBSD-2.2-STABLE         -L/usr/X11/lib -lX11
+
+#alpha-OSF1-V3.2 CC = cc
+#alpha-OSF1-V3.2 CFLAGS = -O4 -migrate -ieee_with_no_inexact
+#alpha-OSF1-V3.2 SCCFLAGS = -migrate -ieee_with_no_inexact
+#alpha-OSF1-V3.2 PLAYCFLAGS = -O4 -migrate -ieee_with_no_inexact\
+#alpha-OSF1-V3.2              -DNDEBUG -I/usr/include
+#alpha-OSF1-V3.2 ENCODECFLAGS = -I/usr/include -Olimit 1200 -O4 -migrate\
+#alpha-OSF1-V3.2                -ieee_with_no_inexact -DSGI -Dsgi
+#alpha-OSF1-V3.2 JPEGCFLAGS = -O4 -migrate -ieee_with_no_inexact
+#alpha-OSF1-V3.2 USLEEP =
+#alpha-OSF1-V3.2 AR = ar rc
+#alpha-OSF1-V3.2 RANLIB = ranlib
+#alpha-OSF1-V3.2 SCCLDFLAGS = -migrate
+#alpha-OSF1-V3.2 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a -lX11
+#alpha-OSF1-V3.2 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a -lX11
+
+#alpha-OSF1-V4.0 CC = cc
+#alpha-OSF1-V4.0 CFLAGS = -O4 -migrate -ieee_with_no_inexact
+#alpha-OSF1-V4.0 SCCFLAGS = -migrate -ieee_with_no_inexact
+#alpha-OSF1-V4.0 PLAYCFLAGS = -O4 -migrate -ieee_with_no_inexact\
+#alpha-OSF1-V4.0              -DNDEBUG -I/usr/include
+#alpha-OSF1-V4.0 ENCODECFLAGS = -I/usr/include -Olimit 1200 -O4 -migrate\
+#alpha-OSF1-V4.0                -ieee_with_no_inexact -DSGI -Dsgi
+#alpha-OSF1-V4.0 JPEGCFLAGS = -O4 -migrate -ieee_with_no_inexact
+#alpha-OSF1-V4.0 USLEEP =
+#alpha-OSF1-V4.0 AR = ar rc
+#alpha-OSF1-V4.0 RANLIB = ranlib
+#alpha-OSF1-V4.0 SCCLDFLAGS = -migrate
+#alpha-OSF1-V4.0 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a -lX11
+#alpha-OSF1-V4.0 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a -lX11
+
+#alpha-Linux-2.0.35 CC = egcs
+#alpha-Linux-2.0.35 CFLAGS = -O2 -ieee -DALPHA
+#alpha-Linux-2.0.35 SCCFLAGS = -ieee
+#alpha-Linux-2.0.35 PLAYCFLAGS = -O2 -ieee -DNDEBUG -I/usr/include
+#alpha-Linux-2.0.35 ENCODECFLAGS = -I/usr/include -O2 -ieee -DSYSV -DLINUX
+#alpha-Linux-2.0.35 JPEGCFLAGS = -O2 -ieee -DINLINE_YES
+#alpha-Linux-2.0.35 USLEEP =
+#alpha-Linux-2.0.35 AR = ar rc
+#alpha-Linux-2.0.35 RANLIB = ranlib
+#alpha-Linux-2.0.35 SCCLDFLAGS =
+#alpha-Linux-2.0.35 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#alpha-Linux-2.0.35       -L/usr/X11R6/lib -lX11
+#alpha-Linux-2.0.35 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#alpha-Linux-2.0.35         -L/usr/X11R6/lib -lX11
+
+#IP7-IRIX-4.0.5 CC = cc
+#IP7-IRIX-4.0.5 CFLAGS = -O
+#IP7-IRIX-4.0.5 SCCFLAGS = -O -Wf,-XNd80000
+#IP7-IRIX-4.0.5 PLAYCFLAGS = -O -DNDEBUG -DNONANSI_INCLUDES -I/usr/include
+#IP7-IRIX-4.0.5 ENCODECFLAGS = -I/usr/include -O -DSGI
+#IP7-IRIX-4.0.5 JPEGCFLAGS = -O
+#IP7-IRIX-4.0.5 USLEEP = usleep.o
+#IP7-IRIX-4.0.5 AR = ar rc
+#IP7-IRIX-4.0.5 RANLIB = cat >/dev/null
+#IP7-IRIX-4.0.5 SCCLDFLAGS =
+#IP7-IRIX-4.0.5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a -lX11
+#IP7-IRIX-4.0.5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a -lX11
+
+#IP12-IRIX-4.0.5 CC = cc
+#IP12-IRIX-4.0.5 CFLAGS = -O
+#IP12-IRIX-4.0.5 SCCFLAGS = -O -Wf,-XNd80000
+#IP12-IRIX-4.0.5 PLAYCFLAGS = -O -DNDEBUG -DNONANSI_INCLUDES -I/usr/include
+#IP12-IRIX-4.0.5 ENCODECFLAGS = -I/usr/include -O -DSGI
+#IP12-IRIX-4.0.5 JPEGCFLAGS = -O
+#IP12-IRIX-4.0.5 USLEEP = usleep.o
+#IP12-IRIX-4.0.5 AR = ar rc
+#IP12-IRIX-4.0.5 RANLIB = cat >/dev/null
+#IP12-IRIX-4.0.5 SCCLDFLAGS =
+#IP12-IRIX-4.0.5 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a -lX11
+#IP12-IRIX-4.0.5 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a -lX11
+
+#IP22-IRIX-5.3 CC = cc
+#IP22-IRIX-5.3 CFLAGS = -O2 -non_shared
+#IP22-IRIX-5.3 SCCFLAGS = -O2 -non_shared -Wf,-XNd80000
+#IP22-IRIX-5.3 PLAYCFLAGS = -O2 -non_shared -DNDEBUG -DNONANSI_INCLUDES\
+#IP22-IRIX-5.3              -I/usr/include
+#IP22-IRIX-5.3 ENCODECFLAGS = -I/usr/include -O2 -non_shared
+#IP22-IRIX-5.3 JPEGCFLAGS = -O2 -non_shared
+#IP22-IRIX-5.3 USLEEP = usleep.o
+#IP22-IRIX-5.3 AR = ar rc
+#IP22-IRIX-5.3 RANLIB = cat >/dev/null
+#IP22-IRIX-5.3 SCCLDFLAGS = -non_shared
+#IP22-IRIX-5.3 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#IP22-IRIX-5.3       $(INSTALLLIBA)/libX11.a
+#IP22-IRIX-5.3 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#IP22-IRIX-5.3         $(INSTALLLIBA)/libX11.a
+
+#IP25-IRIX64-6.2 CC = cc
+#IP25-IRIX64-6.2 CFLAGS = -O2 -non_shared
+#IP25-IRIX64-6.2 SCCFLAGS = -O2 -non_shared -Wf,-XNd80000
+#IP25-IRIX64-6.2 PLAYCFLAGS = -O2 -non_shared -DNDEBUG -DNONANSI_INCLUDES\
+#IP25-IRIX64-6.2              -I/usr/include
+#IP25-IRIX64-6.2 ENCODECFLAGS = -I/usr/include -O2 -non_shared
+#IP25-IRIX64-6.2 JPEGCFLAGS = -O2 -non_shared
+#IP25-IRIX64-6.2 USLEEP = usleep.o
+#IP25-IRIX64-6.2 AR = ar rc
+#IP25-IRIX64-6.2 RANLIB = cat >/dev/null
+#IP25-IRIX64-6.2 SCCLDFLAGS = -non_shared
+#IP25-IRIX64-6.2 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#IP25-IRIX64-6.2       $(INSTALLLIBA)/libX11.a
+#IP25-IRIX64-6.2 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#IP25-IRIX64-6.2         $(INSTALLLIBA)/libX11.a
+
+#IP28-IRIX64-6.2 CC = cc
+#IP28-IRIX64-6.2 CFLAGS = -O2 -non_shared
+#IP28-IRIX64-6.2 SCCFLAGS = -O2 -non_shared -Wf,-XNd80000
+#IP28-IRIX64-6.2 PLAYCFLAGS = -O2 -non_shared -DNDEBUG -DNONANSI_INCLUDES\
+#IP28-IRIX64-6.2              -I/usr/include
+#IP28-IRIX64-6.2 ENCODECFLAGS = -I/usr/include -O2 -non_shared
+#IP28-IRIX64-6.2 JPEGCFLAGS = -O2 -non_shared
+#IP28-IRIX64-6.2 USLEEP = usleep.o
+#IP28-IRIX64-6.2 AR = ar rc
+#IP28-IRIX64-6.2 RANLIB = cat >/dev/null
+#IP28-IRIX64-6.2 SCCLDFLAGS = -non_shared
+#IP28-IRIX64-6.2 LRL = QobiScheme.a $(INSTALLLIBA)/scxl.a\
+#IP28-IRIX64-6.2       $(INSTALLLIBA)/libX11.a
+#IP28-IRIX64-6.2 ADLRL = QobiScheme-AD.a $(INSTALLLIBA)/scxl.a\
+#IP28-IRIX64-6.2         $(INSTALLLIBA)/libX11.a
+
+OBJECTS = QobiScheme.o nobuff.o xflush.o os_dep.o dither.o \
+16bit.o gdith.o ordered.o 2x2.o gray.o ordered2.o ctrlbar.o hybrid.o \
+parseblock.o decoders.o hybriderr.o play_api.o floatdct.o play_jrevdct.o \
+readfile.o fs2.o mb_ordered.o util.o fs2fast.o mono.o util32.o fs4.o \
+motionvector.o video.o bframe.o iframe.o pframe.o bitio.o nojpeg.o postdct.o \
+block.o encode_jrevdct.o psearch.o bsearch.o libpnmrw.o rate.o combine.o \
+mfwddct.o readframe.o encode_api.o mheaders.o rgbtoycc.o frame.o mpeg.o \
+specifics.o frametype.o noparallel.o subsample.o fsize.o opts.o huff.o \
+param.o jcomapi.o jutils.o jerror.o jmemmgr.o jmemnobs.o jcapimin.o \
+jcapistd.o jctrans.o jcparam.o jdatadst.o jcinit.o jcmaster.o jcmarker.o \
+jcmainct.o jcprepct.o jccoefct.o jccolor.o jcsample.o jchuff.o jcphuff.o \
+jcdctmgr.o jfdctfst.o jfdctflt.o jfdctint.o jdapimin.o jdapistd.o jdtrans.o \
+jdatasrc.o jdmaster.o  jdinput.o jdmarker.o jdhuff.o jdphuff.o jdmainct.o \
+jdcoefct.o jdpostct.o jddctmgr.o jidctfst.o jidctflt.o jidctint.o jidctred.o \
+jdsample.o jdcolor.o jquant1.o jquant2.o jdmerge.o
+
+AD_OBJECTS = QobiScheme-AD.o nobuff.o xflush.o os_dep.o dither.o \
+16bit.o gdith.o ordered.o 2x2.o gray.o ordered2.o ctrlbar.o hybrid.o \
+parseblock.o decoders.o hybriderr.o play_api.o floatdct.o play_jrevdct.o \
+readfile.o fs2.o mb_ordered.o util.o fs2fast.o mono.o util32.o fs4.o \
+motionvector.o video.o bframe.o iframe.o pframe.o bitio.o nojpeg.o postdct.o \
+block.o encode_jrevdct.o psearch.o bsearch.o libpnmrw.o rate.o combine.o \
+mfwddct.o readframe.o encode_api.o mheaders.o rgbtoycc.o frame.o mpeg.o \
+specifics.o frametype.o noparallel.o subsample.o fsize.o opts.o huff.o \
+param.o jcomapi.o jutils.o jerror.o jmemmgr.o jmemnobs.o jcapimin.o \
+jcapistd.o jctrans.o jcparam.o jdatadst.o jcinit.o jcmaster.o jcmarker.o \
+jcmainct.o jcprepct.o jccoefct.o jccolor.o jcsample.o jchuff.o jcphuff.o \
+jcdctmgr.o jfdctfst.o jfdctflt.o jfdctint.o jdapimin.o jdapistd.o jdtrans.o \
+jdatasrc.o jdmaster.o  jdinput.o jdmarker.o jdhuff.o jdphuff.o jdmainct.o \
+jdcoefct.o jdpostct.o jddctmgr.o jidctfst.o jidctflt.o jidctint.o jidctred.o \
+jdsample.o jdcolor.o jquant1.o jquant2.o jdmerge.o
+
+arc:
+	-csh -cf "rm -rf ../archive/`archive-date`"
+	csh -cf "mkdir ../archive/`archive-date`"
+	csh -cf "cp ../README ../archive/`archive-date`/."
+	csh -cf "cp makefile ../archive/`archive-date`/."
+	csh -cf "cp minimal-project-makefile ../archive/`archive-date`/."
+	csh -cf "cp *.{sc,sch,load,c,h} ../archive/`archive-date`/."
+	csh -cf "cp ../documentation/*.{sc,text} ../archive/`archive-date`/."
+
+clean:
+	-rm -f *.o core a.out
+
+real-clean: clean
+	-rm -f body qsci sch *.a
+
+install: QobiScheme.a QobiScheme-AD.a body qsci sch
+	cp QobiScheme.load $(INSTALLINCLUDE)/.
+	cp QobiScheme.sch QobiScheme-AD.sch xlib.sch $(INSTALLINCLUDE)/.
+	cp QobiScheme.a $(INSTALLLIBA)/.
+	cp QobiScheme-AD.a $(INSTALLLIBA)/.
+	cp body qsci sch $(INSTALLBINA)/.
+	cp ../minimal-project-makefile $(INSTALLINCLUDE)/.
+	cp ../minimal-projectlib-component.sc $(INSTALLINCLUDE)/.
+	cp ../minimal-application.sc $(INSTALLINCLUDE)/.
+	cp ../make-project $(INSTALLBIN)/.
+	$(RANLIB) $(INSTALLLIBA)/QobiScheme.a
+	$(RANLIB) $(INSTALLLIBA)/QobiScheme-AD.a
+
+uninstall:
+	rm -rf $(INSTALLINCLUDE)/QobiScheme.load
+	rm -rf $(INSTALLINCLUDE)/QobiScheme.sch
+	rm -rf $(INSTALLINCLUDE)/QobiScheme-AD.sch
+	rm -rf $(INSTALLINCLUDE)/xlib.sch
+	rm -rf $(INSTALLLIBA)/QobiScheme.a
+	rm -rf $(INSTALLLIBA)/QobiScheme-AD.a
+	rm -rf $(INSTALLBINA)/body
+	rm -rf $(INSTALLBINA)/qsci
+	rm -rf $(INSTALLBINA)/sch
+	rm -rf $(INSTALLINCLUDE)/minimal-project-makefile
+	rm -rf $(INSTALLINCLUDE)/minimal-projectlib-component.sc
+	rm -rf $(INSTALLINCLUDE)/minimal-application.sc
+	rm -rf $(INSTALLBIN)/make-project
+
+release:
+	-rm -rf $(RELEASE_FILE) $(RELEASE_FILE).tar*
+	mkdir $(RELEASE_FILE)
+	mkdir $(RELEASE_FILE)/source
+	mkdir $(RELEASE_FILE)/documentation
+	cp ../README $(RELEASE_FILE)/.
+	cp QobiScheme.sc $(RELEASE_FILE)/source/.
+	cp QobiScheme-AD.sc $(RELEASE_FILE)/source/.
+	cp QobiScheme.sch $(RELEASE_FILE)/source/.
+	cp QobiScheme-AD.sch $(RELEASE_FILE)/source/.
+	cp QobiScheme.load $(RELEASE_FILE)/source/.
+	cp body.sc $(RELEASE_FILE)/source/.
+	cp ../documentation/define-application-example.sc $(RELEASE_FILE)/documentation/.
+	cp ../documentation/define-command.text $(RELEASE_FILE)/documentation/.
+	cp makefile $(RELEASE_FILE)/source/.
+	cp usleep.c $(RELEASE_FILE)/source/.
+	cp nobuff.c $(RELEASE_FILE)/source/.
+	cp xflush.c $(RELEASE_FILE)/source/.
+	cp os_dep.c $(RELEASE_FILE)/source/.
+	cp dither.c $(RELEASE_FILE)/source/.
+	cp util.c $(RELEASE_FILE)/source/.
+	cp video.c $(RELEASE_FILE)/source/.
+	cp parseblock.c $(RELEASE_FILE)/source/.
+	cp motionvector.c $(RELEASE_FILE)/source/.
+	cp decoders.c $(RELEASE_FILE)/source/.
+	cp play_api.c $(RELEASE_FILE)/source/.
+	cp gdith.c $(RELEASE_FILE)/source/.
+	cp fs2.c $(RELEASE_FILE)/source/.
+	cp fs2fast.c $(RELEASE_FILE)/source/.
+	cp fs4.c $(RELEASE_FILE)/source/.
+	cp hybrid.c $(RELEASE_FILE)/source/.
+	cp hybriderr.c $(RELEASE_FILE)/source/.
+	cp 2x2.c $(RELEASE_FILE)/source/.
+	cp gray.c $(RELEASE_FILE)/source/.
+	cp mono.c $(RELEASE_FILE)/source/.
+	cp play_jrevdct.c $(RELEASE_FILE)/source/.
+	cp 16bit.c $(RELEASE_FILE)/source/.
+	cp util32.c $(RELEASE_FILE)/source/.
+	cp ordered.c $(RELEASE_FILE)/source/.
+	cp ordered2.c $(RELEASE_FILE)/source/.
+	cp mb_ordered.c $(RELEASE_FILE)/source/.
+	cp readfile.c $(RELEASE_FILE)/source/.
+	cp floatdct.c $(RELEASE_FILE)/source/.
+	cp ctrlbar.c $(RELEASE_FILE)/source/.
+	cp mfwddct.c $(RELEASE_FILE)/source/.
+	cp postdct.c $(RELEASE_FILE)/source/.
+	cp huff.c $(RELEASE_FILE)/source/.
+	cp bitio.c $(RELEASE_FILE)/source/.
+	cp mheaders.c $(RELEASE_FILE)/source/.
+	cp mpeg.c $(RELEASE_FILE)/source/.
+	cp subsample.c $(RELEASE_FILE)/source/.
+	cp param.c $(RELEASE_FILE)/source/.
+	cp rgbtoycc.c $(RELEASE_FILE)/source/.
+	cp readframe.c $(RELEASE_FILE)/source/.
+	cp combine.c $(RELEASE_FILE)/source/.
+	cp encode_jrevdct.c $(RELEASE_FILE)/source/.
+	cp frame.c $(RELEASE_FILE)/source/.
+	cp fsize.c $(RELEASE_FILE)/source/.
+	cp frametype.c $(RELEASE_FILE)/source/.
+	cp libpnmrw.c $(RELEASE_FILE)/source/.
+	cp specifics.c $(RELEASE_FILE)/source/.
+	cp rate.c $(RELEASE_FILE)/source/.
+	cp opts.c $(RELEASE_FILE)/source/.
+	cp iframe.c $(RELEASE_FILE)/source/.
+	cp pframe.c $(RELEASE_FILE)/source/.
+	cp bframe.c $(RELEASE_FILE)/source/.
+	cp psearch.c $(RELEASE_FILE)/source/.
+	cp bsearch.c $(RELEASE_FILE)/source/.
+	cp block.c $(RELEASE_FILE)/source/.
+	cp noparallel.c $(RELEASE_FILE)/source/.
+	cp nojpeg.c $(RELEASE_FILE)/source/.
+	cp encode_api.c $(RELEASE_FILE)/source/.
+	cp all.h $(RELEASE_FILE)/source/.
+	cp ansi.h $(RELEASE_FILE)/source/.
+	cp bitio.h $(RELEASE_FILE)/source/.
+	cp byteorder.h $(RELEASE_FILE)/source/.
+	cp combine.h $(RELEASE_FILE)/source/.
+	cp ctrlbar.h $(RELEASE_FILE)/source/.
+	cp dct.h $(RELEASE_FILE)/source/.
+	cp decoders.h $(RELEASE_FILE)/source/.
+	cp dither.h $(RELEASE_FILE)/source/.
+	cp frame.h $(RELEASE_FILE)/source/.
+	cp frames.h $(RELEASE_FILE)/source/.
+	cp fs2.h $(RELEASE_FILE)/source/.
+	cp fs4.h $(RELEASE_FILE)/source/.
+	cp fsize.h $(RELEASE_FILE)/source/.
+	cp general.h $(RELEASE_FILE)/source/.
+	cp huff.h $(RELEASE_FILE)/source/.
+	cp jpeg.h $(RELEASE_FILE)/source/.
+	cp libpnmrw.h $(RELEASE_FILE)/source/.
+	cp mheaders.h $(RELEASE_FILE)/source/.
+	cp mpeg.h $(RELEASE_FILE)/source/.
+	cp mproto.h $(RELEASE_FILE)/source/.
+	cp mtypes.h $(RELEASE_FILE)/source/.
+	cp opts.h $(RELEASE_FILE)/source/.
+	cp parallel.h $(RELEASE_FILE)/source/.
+	cp param.h $(RELEASE_FILE)/source/.
+	cp postdct.h $(RELEASE_FILE)/source/.
+	cp proto.h $(RELEASE_FILE)/source/.
+	cp prototypes.h $(RELEASE_FILE)/source/.
+	cp rate.h $(RELEASE_FILE)/source/.
+	cp readframe.h $(RELEASE_FILE)/source/.
+	cp rgbtoycc.h $(RELEASE_FILE)/source/.
+	cp search.h $(RELEASE_FILE)/source/.
+	cp specifics.h $(RELEASE_FILE)/source/.
+	cp util.h $(RELEASE_FILE)/source/.
+	cp video.h $(RELEASE_FILE)/source/.
+	cp qsci.sc $(RELEASE_FILE)/source/.
+	cp sch.sc $(RELEASE_FILE)/source/.
+	cp xlib.sch $(RELEASE_FILE)/source/.
+	cp jcapimin.c $(RELEASE_FILE)/source/.
+	cp jcapistd.c $(RELEASE_FILE)/source/.
+	cp jccoefct.c $(RELEASE_FILE)/source/.
+	cp jccolor.c $(RELEASE_FILE)/source/.
+	cp jcdctmgr.c $(RELEASE_FILE)/source/.
+	cp jchuff.c $(RELEASE_FILE)/source/.
+	cp jcinit.c $(RELEASE_FILE)/source/.
+	cp jcmainct.c $(RELEASE_FILE)/source/.
+	cp jcmarker.c $(RELEASE_FILE)/source/.
+	cp jcmaster.c $(RELEASE_FILE)/source/.
+	cp jcomapi.c $(RELEASE_FILE)/source/.
+	cp jcparam.c $(RELEASE_FILE)/source/.
+	cp jcphuff.c $(RELEASE_FILE)/source/.
+	cp jcprepct.c $(RELEASE_FILE)/source/.
+	cp jcsample.c $(RELEASE_FILE)/source/.
+	cp jctrans.c $(RELEASE_FILE)/source/.
+	cp jdapimin.c $(RELEASE_FILE)/source/.
+	cp jdapistd.c $(RELEASE_FILE)/source/.
+	cp jdatadst.c $(RELEASE_FILE)/source/.
+	cp jdatasrc.c $(RELEASE_FILE)/source/.
+	cp jdcoefct.c $(RELEASE_FILE)/source/.
+	cp jdcolor.c $(RELEASE_FILE)/source/.
+	cp jddctmgr.c $(RELEASE_FILE)/source/.
+	cp jdhuff.c $(RELEASE_FILE)/source/.
+	cp jdinput.c $(RELEASE_FILE)/source/.
+	cp jdmainct.c $(RELEASE_FILE)/source/.
+	cp jdmarker.c $(RELEASE_FILE)/source/.
+	cp jdmaster.c $(RELEASE_FILE)/source/.
+	cp jdmerge.c $(RELEASE_FILE)/source/.
+	cp jdphuff.c $(RELEASE_FILE)/source/.
+	cp jdpostct.c $(RELEASE_FILE)/source/.
+	cp jdsample.c $(RELEASE_FILE)/source/.
+	cp jdtrans.c $(RELEASE_FILE)/source/.
+	cp jerror.c $(RELEASE_FILE)/source/.
+	cp jfdctflt.c $(RELEASE_FILE)/source/.
+	cp jfdctfst.c $(RELEASE_FILE)/source/.
+	cp jfdctint.c $(RELEASE_FILE)/source/.
+	cp jidctflt.c $(RELEASE_FILE)/source/.
+	cp jidctfst.c $(RELEASE_FILE)/source/.
+	cp jidctint.c $(RELEASE_FILE)/source/.
+	cp jidctred.c $(RELEASE_FILE)/source/.
+	cp jquant1.c $(RELEASE_FILE)/source/.
+	cp jquant2.c $(RELEASE_FILE)/source/.
+	cp jutils.c $(RELEASE_FILE)/source/.
+	cp jmemmgr.c $(RELEASE_FILE)/source/.
+	cp jmemansi.c $(RELEASE_FILE)/source/.
+	cp jmemname.c $(RELEASE_FILE)/source/.
+	cp jmemnobs.c $(RELEASE_FILE)/source/.
+	cp jmemdos.c $(RELEASE_FILE)/source/.
+	cp cjpeg.c $(RELEASE_FILE)/source/.
+	cp djpeg.c $(RELEASE_FILE)/source/.
+	cp jpegtran.c $(RELEASE_FILE)/source/.
+	cp cdjpeg.c $(RELEASE_FILE)/source/.
+	cp rdcolmap.c $(RELEASE_FILE)/source/.
+	cp rdswitch.c $(RELEASE_FILE)/source/.
+	cp rdjpgcom.c $(RELEASE_FILE)/source/.
+	cp wrjpgcom.c $(RELEASE_FILE)/source/.
+	cp rdppm.c $(RELEASE_FILE)/source/.
+	cp wrppm.c $(RELEASE_FILE)/source/.
+	cp rdgif.c $(RELEASE_FILE)/source/.
+	cp wrgif.c $(RELEASE_FILE)/source/.
+	cp rdtarga.c $(RELEASE_FILE)/source/.
+	cp wrtarga.c $(RELEASE_FILE)/source/.
+	cp rdbmp.c $(RELEASE_FILE)/source/.
+	cp wrbmp.c $(RELEASE_FILE)/source/.
+	cp rdrle.c $(RELEASE_FILE)/source/.
+	cp wrrle.c $(RELEASE_FILE)/source/.
+	cp cderror.h $(RELEASE_FILE)/source/.
+	cp jdct.h $(RELEASE_FILE)/source/.
+	cp jmemsys.h $(RELEASE_FILE)/source/.
+	cp jversion.h $(RELEASE_FILE)/source/.
+	cp cdjpeg.h $(RELEASE_FILE)/source/.
+	cp jdhuff.h $(RELEASE_FILE)/source/.
+	cp jmorecfg.h $(RELEASE_FILE)/source/.
+	cp jchuff.h $(RELEASE_FILE)/source/.
+	cp jerror.h $(RELEASE_FILE)/source/.
+	cp jpegint.h $(RELEASE_FILE)/source/.
+	cp jconfig.h $(RELEASE_FILE)/source/.
+	cp jinclude.h $(RELEASE_FILE)/source/.
+	cp jpeglib.h $(RELEASE_FILE)/source/.
+	cp minimal-project-makefile $(RELEASE_FILE)/source/.
+	cp minimal-projectlib-component.sc $(RELEASE_FILE)/source/.
+	cp minimal-application.sc $(RELEASE_FILE)/source/.
+	cp make-project $(RELEASE_FILE)/source/.
+	tar cvf $(RELEASE_FILE).tar ./$(RELEASE_FILE)
+	compress $(RELEASE_FILE).tar
+	-rm -rf $(RELEASE_FILE)
+	mv $(RELEASE_FILE).tar.Z ../releases/.
+
+publish: release
+	cd ..; publish QobiScheme $(RELEASE_VERSION)
+
+# Compilation rules and dependencies
+# ----------------------------------
+body: body.sc
+	scc -cc $(CC) $(SCCFLAGS) -o body body.sc
+	-rm -f body.c
+
+QobiScheme.o: QobiScheme.sc xlib.sch
+	scc -cc $(CC) $(SCCFLAGS) -c QobiScheme.sc
+	-rm -f QobiScheme.c
+
+QobiScheme-AD.o: QobiScheme-AD.sc xlib.sch
+	scc -cc $(CC) $(SCCFLAGS) -c QobiScheme-AD.sc
+	-rm -f QobiScheme-AD.c
+
+usleep.o: usleep.c
+	$(CC) $(CFLAGS) -c usleep.c
+
+nobuff.o: nobuff.c
+	$(CC) $(CFLAGS) -c nobuff.c
+
+xflush.o: xflush.c
+	$(CC) $(CFLAGS) -c xflush.c
+
+os_dep.o: os_dep.c
+	$(CC) $(CFLAGS) -c os_dep.c
+
+dither.o: dither.c
+	$(CC) $(CFLAGS) -c dither.c
+
+util.o: video.h proto.h util.h ctrlbar.h
+	$(CC) $(PLAYCFLAGS) -c util.c
+
+video.o: ctrlbar.h decoders.h video.h util.h proto.h
+	$(CC) $(PLAYCFLAGS) -c video.c
+
+parseblock.o: video.h proto.h decoders.h
+	$(CC) $(PLAYCFLAGS) -c parseblock.c
+
+motionvector.o: video.h proto.h util.h
+	$(CC) $(PLAYCFLAGS) -c motionvector.c
+
+decoders.o: decoders.h util.h video.h proto.h
+	$(CC) $(PLAYCFLAGS) -c decoders.c
+
+play_api.o: video.h proto.h ctrlbar.h util.h dither.h
+	$(CC) $(PLAYCFLAGS) -c play_api.c
+
+gdith.o: video.h proto.h dither.h ctrlbar.h
+	$(CC) $(PLAYCFLAGS) -c gdith.c
+
+fs2.o: video.h dither.h fs2.h proto.h
+	$(CC) $(PLAYCFLAGS) -c fs2.c
+
+fs2fast.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c fs2fast.c
+
+fs4.o: fs4.h video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c fs4.c
+
+hybrid.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c hybrid.c
+
+hybriderr.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c hybriderr.c
+
+2x2.o: video.h dither.h proto.h
+	$(CC) $(PLAYCFLAGS) -c 2x2.c
+
+gray.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c gray.c
+
+mono.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c mono.c
+
+play_jrevdct.o: video.h proto.h
+	$(CC) $(PLAYCFLAGS) -c play_jrevdct.c
+
+16bit.o: video.h dither.h proto.h
+	$(CC) $(PLAYCFLAGS) -c 16bit.c
+
+util32.o: video.h proto.h
+	$(CC) $(PLAYCFLAGS) -c util32.c
+
+ordered.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c ordered.c
+
+ordered2.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c ordered2.c
+
+mb_ordered.o: video.h proto.h dither.h
+	$(CC) $(PLAYCFLAGS) -c mb_ordered.c
+
+readfile.o: video.h proto.h util.h dither.h
+	$(CC) $(PLAYCFLAGS) -c readfile.c
+
+floatdct.o:
+	$(CC) $(PLAYCFLAGS) -c floatdct.c
+
+ctrlbar.o: dither.h video.h ctrlbar.h proto.h
+	$(CC) $(PLAYCFLAGS) -c ctrlbar.c
+
+mfwddct.o: all.h dct.h mtypes.h opts.h
+	$(CC) $(ENCODECFLAGS) -c mfwddct.c
+
+postdct.o: all.h mtypes.h bitio.h huff.h postdct.h opts.h
+	$(CC) $(ENCODECFLAGS) -c postdct.c
+
+huff.o: mtypes.h huff.h
+	$(CC) $(ENCODECFLAGS) -c huff.c
+
+bitio.o: all.h byteorder.h bitio.h mtypes.h
+	$(CC) $(ENCODECFLAGS) -c bitio.c
+
+mheaders.o: all.h bitio.h frames.h mheaders.h
+	$(CC) $(ENCODECFLAGS) -c mheaders.c
+
+mpeg.o: all.h mtypes.h frames.h search.h mpeg.h prototypes.h parallel.h \
+param.h readframe.h fsize.h mheaders.h rate.h
+	$(CC) $(ENCODECFLAGS) -c mpeg.c
+
+subsample.o: all.h mtypes.h frames.h bitio.h prototypes.h
+	$(CC) $(ENCODECFLAGS) -c subsample.c
+
+param.o: all.h mtypes.h mpeg.h search.h prototypes.h parallel.h param.h \
+readframe.h fsize.h frames.h jpeg.h rate.h opts.h
+	$(CC) $(ENCODECFLAGS) -c param.c
+
+rgbtoycc.o: all.h frame.h fsize.h rgbtoycc.h
+	$(CC) $(ENCODECFLAGS) -c rgbtoycc.c
+
+readframe.o: all.h mtypes.h frames.h prototypes.h parallel.h param.h \
+readframe.h fsize.h rgbtoycc.h jpeg.h opts.h
+	$(CC) $(ENCODECFLAGS) -c readframe.c
+
+combine.o: all.h mtypes.h frames.h search.h mpeg.h prototypes.h parallel.h \
+param.h readframe.h mheaders.h fsize.h combine.h
+	$(CC) $(ENCODECFLAGS) -c combine.c
+
+encode_jrevdct.o: all.h ansi.h dct.h
+	$(CC) $(ENCODECFLAGS) -c encode_jrevdct.c
+
+frame.o: all.h mtypes.h frames.h frame.h fsize.h dct.h
+	$(CC) $(ENCODECFLAGS) -c frame.c
+
+fsize.o: all.h fsize.h dct.h
+	$(CC) $(ENCODECFLAGS) -c fsize.c
+
+frametype.o: all.h prototypes.h frames.h frame.h param.h
+	$(CC) $(ENCODECFLAGS) -c frametype.c
+
+libpnmrw.o: libpnmrw.h
+	$(CC) $(ENCODECFLAGS) -c libpnmrw.c
+
+specifics.o: all.h mtypes.h frames.h frame.h dct.h specifics.h prototypes.h
+	$(CC) $(ENCODECFLAGS) -c specifics.c
+
+rate.o: all.h mtypes.h bitio.h frames.h prototypes.h param.h mheaders.h \
+fsize.h postdct.h mpeg.h parallel.h dct.h rate.h
+	$(CC) $(ENCODECFLAGS) -c rate.c
+
+opts.o: opts.h
+	$(CC) $(ENCODECFLAGS) -c opts.c
+
+iframe.o: all.h mtypes.h frames.h prototypes.h mpeg.h param.h mheaders.h \
+fsize.h parallel.h postdct.h rate.h opts.h
+	$(CC) $(ENCODECFLAGS) -c iframe.c
+
+pframe.o: all.h mtypes.h bitio.h frames.h prototypes.h param.h mheaders.h \
+fsize.h postdct.h mpeg.h parallel.h rate.h opts.h
+	$(CC) $(ENCODECFLAGS) -c pframe.c
+
+bframe.o: all.h mtypes.h bitio.h frames.h prototypes.h fsize.h param.h \
+mheaders.h postdct.h rate.h opts.h
+	$(CC) $(ENCODECFLAGS) -c bframe.c
+
+psearch.o: all.h mtypes.h frames.h search.h prototypes.h fsize.h param.h
+	$(CC) $(ENCODECFLAGS) -c psearch.c
+
+bsearch.o: all.h mtypes.h frames.h search.h fsize.h
+	$(CC) $(ENCODECFLAGS) -c bsearch.c
+
+block.o: all.h mtypes.h frames.h bitio.h prototypes.h fsize.h opts.h postdct.h
+	$(CC) $(ENCODECFLAGS) -c block.c
+
+noparallel.o: all.h mtypes.h parallel.h frame.h
+	$(CC) $(ENCODECFLAGS) -c noparallel.c
+
+nojpeg.o: all.h mtypes.h frames.h prototypes.h param.h readframe.h fsize.h \
+rgbtoycc.h jpeg.h
+	$(CC) $(ENCODECFLAGS) -c nojpeg.c
+
+encode_api.o: all.h mtypes.h mpeg.h search.h prototypes.h param.h parallel.h \
+readframe.h combine.h frames.h jpeg.h specifics.h opts.h
+	$(CC) $(ENCODECFLAGS) -c encode_api.c
+
+jcapimin.o: jcapimin.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcapimin.c
+
+jcapistd.o: jcapistd.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcapistd.c
+
+jccoefct.o: jccoefct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jccoefct.c
+
+jccolor.o: jccolor.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jccolor.c
+
+jcdctmgr.o: jcdctmgr.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jcdctmgr.c
+
+jchuff.o: jchuff.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jchuff.h
+	$(CC) $(JPEGCFLAGS) -c jchuff.c
+
+jcinit.o: jcinit.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcinit.c
+
+jcmainct.o: jcmainct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcmainct.c
+
+jcmarker.o: jcmarker.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcmarker.c
+
+jcmaster.o: jcmaster.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcmaster.c
+
+jcomapi.o: jcomapi.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcomapi.c
+
+jcparam.o: jcparam.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcparam.c
+
+jcphuff.o: jcphuff.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jchuff.h
+	$(CC) $(JPEGCFLAGS) -c jcphuff.c
+
+jcprepct.o: jcprepct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcprepct.c
+
+jcsample.o: jcsample.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jcsample.c
+
+jctrans.o: jctrans.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jctrans.c
+
+jdapimin.o: jdapimin.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdapimin.c
+
+jdapistd.o: jdapistd.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdapistd.c
+
+jdatadst.o: jdatadst.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdatadst.c
+
+jdatasrc.o: jdatasrc.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdatasrc.c
+
+jdcoefct.o: jdcoefct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdcoefct.c
+
+jdcolor.o: jdcolor.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdcolor.c
+
+jddctmgr.o: jddctmgr.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jddctmgr.c
+
+jdhuff.o: jdhuff.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdhuff.h
+	$(CC) $(JPEGCFLAGS) -c jdhuff.c
+
+jdinput.o: jdinput.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdinput.c
+
+jdmainct.o: jdmainct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdmainct.c
+
+jdmarker.o: jdmarker.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdmarker.c
+
+jdmaster.o: jdmaster.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdmaster.c
+
+jdmerge.o: jdmerge.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdmerge.c
+
+jdphuff.o: jdphuff.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdhuff.h
+	$(CC) $(JPEGCFLAGS) -c jdphuff.c
+
+jdpostct.o: jdpostct.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdpostct.c
+
+jdsample.o: jdsample.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdsample.c
+
+jdtrans.o: jdtrans.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jdtrans.c
+
+jerror.o: jerror.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jversion.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jerror.c
+
+jfdctflt.o: jfdctflt.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jfdctflt.c
+
+jfdctfst.o: jfdctfst.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jfdctfst.c
+
+jfdctint.o: jfdctint.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jfdctint.c
+
+jidctflt.o: jidctflt.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jidctflt.c
+
+jidctfst.o: jidctfst.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jidctfst.c
+
+jidctint.o: jidctint.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jidctint.c
+
+jidctred.o: jidctred.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jdct.h
+	$(CC) $(JPEGCFLAGS) -c jidctred.c
+
+jquant1.o: jquant1.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jquant1.c
+
+jquant2.o: jquant2.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h
+	$(CC) $(JPEGCFLAGS) -c jquant2.c
+
+jutils.o: jutils.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h jerror.h
+	$(CC) $(JPEGCFLAGS) -c jutils.c
+
+jmemmgr.o: jmemmgr.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jmemsys.h
+	$(CC) $(JPEGCFLAGS) -c jmemmgr.c
+
+jmemansi.o: jmemansi.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jmemsys.h
+	$(CC) $(JPEGCFLAGS) -c jmemansi.c
+
+jmemname.o: jmemname.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jmemsys.h
+	$(CC) $(JPEGCFLAGS) -c jmemname.c
+
+jmemnobs.o: jmemnobs.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jmemsys.h
+	$(CC) $(JPEGCFLAGS) -c jmemnobs.c
+
+jmemdos.o: jmemdos.c jinclude.h jconfig.h jpeglib.h jmorecfg.h jpegint.h \
+jerror.h jmemsys.h
+	$(CC) $(JPEGCFLAGS) -c jmemdos.c
+
+cjpeg.o: cjpeg.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h jversion.h
+	$(CC) $(JPEGCFLAGS) -c cjpeg.c
+
+djpeg.o: djpeg.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h jversion.h
+	$(CC) $(JPEGCFLAGS) -c djpeg.c
+
+jpegtran.o: jpegtran.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h jversion.h
+	$(CC) $(JPEGCFLAGS) -c jpegtran.c
+
+cdjpeg.o: cdjpeg.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h
+	$(CC) $(JPEGCFLAGS) -c cdjpeg.c
+
+rdcolmap.o: rdcolmap.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdcolmap.c
+
+rdswitch.o: rdswitch.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdswitch.c
+
+rdjpgcom.o: rdjpgcom.c jinclude.h jconfig.h
+	$(CC) $(JPEGCFLAGS) -c rdjpgcom.c
+
+wrjpgcom.o: wrjpgcom.c jinclude.h jconfig.h
+	$(CC) $(JPEGCFLAGS) -c wrjpgcom.c
+
+rdppm.o: rdppm.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdppm.c
+
+wrppm.o: wrppm.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c wrppm.c
+
+rdgif.o: rdgif.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdgif.c
+
+wrgif.o: wrgif.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c wrgif.c
+
+rdtarga.o: rdtarga.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdtarga.c
+
+wrtarga.o: wrtarga.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h \
+jerror.h cderror.h
+	$(CC) $(JPEGCFLAGS) -c wrtarga.c
+
+rdbmp.o: rdbmp.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdbmp.c
+
+wrbmp.o: wrbmp.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c wrbmp.c
+
+rdrle.o: rdrle.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c rdrle.c
+
+wrrle.o: wrrle.c cdjpeg.h jinclude.h jconfig.h jpeglib.h jmorecfg.h jerror.h \
+cderror.h
+	$(CC) $(JPEGCFLAGS) -c wrrle.c
+
+QobiScheme.a: $(OBJECTS) usleep.o
+	-rm -f QobiScheme.a
+	$(AR) QobiScheme.a $(OBJECTS) $(USLEEP)
+	$(RANLIB) QobiScheme.a
+
+QobiScheme-AD.a: $(AD_OBJECTS) usleep.o
+	-rm -f QobiScheme-AD.a
+	$(AR) QobiScheme-AD.a $(AD_OBJECTS) $(USLEEP)
+	$(RANLIB) QobiScheme-AD.a
+
+qsci.o: qsci.sc xlib.sch QobiScheme-AD.sch QobiScheme.load
+	scc -cc $(CC) $(SCCFLAGS) -c qsci.sc
+	rm -f qsci.c
+
+qsci: qsci.o QobiScheme-AD.a
+	scc -cc $(CC) $(SCCLDFLAGS) -o qsci qsci.o $(ADLRL)
+
+sch.o: sch.sc xlib.sch QobiScheme.sch
+	scc -cc $(CC) $(SCCFLAGS) -c sch.sc
+	rm -f sch.c
+
+sch: sch.o QobiScheme.a
+	scc -cc $(CC) $(SCCLDFLAGS) -o sch sch.o $(LRL)

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-name"
+  exit $E_BADARGS
+fi
+
+if [ `basename $1` == $1 ] ; then
+
+CORPUS=`cat ~/darpa-collaboration/documentation/darpa-corpora.text | grep $1 | head -1 | awk '{print $1}'`
+
+if [ "$CORPUS" == "" ] ; then
+	echo "Error: Corpus not detected for $1" 1>&2
+else
+	if [ ! -f ~/video-datasets/$CORPUS/$1.* ] ; then
+		echo "Warning: ~/video-datasets/$CORPUS/$1.* does not exist" 1>&2
+	fi
+	# if [ ! -d ~/video-datasets/$CORPUS/$1/ ] ; then
+	# 	echo "Warning: $1 not expanded" 1>&2
+	# fi
+	echo "$HOME/video-datasets/$CORPUS/$1"
+fi
+
+else
+	echo $1
+fi

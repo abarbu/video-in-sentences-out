@@ -1,0 +1,28 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -lt $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video frame#+"
+  exit $E_BADARGS
+fi
+
+~/darpa-collaboration/bin/expand-video $1
+
+LENGTH=`~/darpa-collaboration/bin/video-length $1`
+
+frames=("$@")
+for frame in `seq 1 $LENGTH`; do
+    keep=0
+    for i in ${frames[@]:1}; do 
+	if [[ $i == $frame ]]; then
+	    keep=1
+	fi
+    done
+    if [[ $keep == 0 ]]; then
+	rm ${1%.mov}/`printf '%04d' $frame`/frame.ppm
+	rmdir ${1%.mov}/`printf '%04d' $frame`
+    fi
+done

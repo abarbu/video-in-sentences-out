@@ -1,0 +1,25 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` video-pathname"
+  exit $E_BADARGS
+fi
+
+if [[ $1 =~ .*"/".* ]]; then
+    echo $1
+else
+    if [[ -e "${HOME}/video-datasets/C-D1/recognition/$1" || -e "${HOME}/video-datasets/C-D1/recognition/$1.mov" ]]; then
+    	echo "${HOME}/video-datasets/C-D1/recognition/"/$1
+    elif [[ -e "${HOME}/video-datasets/C-D1a/SINGLE_VERB/$1" || -e "${HOME}/video-datasets/C-D1a/SINGLE_VERB/$1.mov" ]]; then
+    	echo "${HOME}/video-datasets/C-D1a/SINGLE_VERB/"/$1
+    elif [[ -e "${HOME}/video-datasets/C-D1b/videos/$1" || -e "${HOME}/video-datasets/C-D1b/videos/$1.mov" ]]; then
+    	echo "${HOME}/video-datasets/C-D1b/videos/"/$1
+    else
+	echo "Error, video not found and no directory was passed in" 1>&2
+	echo $1
+    fi
+fi

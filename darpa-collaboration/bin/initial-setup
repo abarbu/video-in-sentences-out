@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+cd ~/darpa-collaboration/bin/
+~/darpa-collaboration/bin/build-architecture-libs
+~/darpa-collaboration/bin/install-ffmpeg-presets
+if [[ -e ~abarbu/pkg/irobot_libcudafelz_1.2_toolkit_3.2_64bit.tar.gz ]]; then
+    tar -C ~/darpa-collaboration/pkg -xvf ~abarbu/pkg/irobot_libcudafelz_1.3_alpha_toolkit_3.2_64bit.tar.gz
+else
+    tar -C ~/darpa-collaboration/pkg -xvf ~/installer/irobot_libcudafelz_1.3_alpha_toolkit_3.2_64bit.tar.gz
+fi
+~/darpa-collaboration/bin/build-opencv.sh
+~/darpa-collaboration/bin/build-flowlib.sh
+~/darpa-collaboration/bin/build-cudaklt.sh
+cd ~/darpa-collaboration/ffmpeg
+darpa-wrap make ffmpeg ffmpeg-bindings
+darpa-wrap make install

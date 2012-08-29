@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ffmpeg -i $1  &> /tmp/ffmpeg-tmp
+grep x /tmp/ffmpeg-tmp|tail -n1|perl -pe 's/.* ([0-9]+)x([0-9]+).*/$1,$2/'
+rm /tmp/ffmpeg-tmp
